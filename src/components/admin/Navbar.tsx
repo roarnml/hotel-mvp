@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { FiSearch, FiBell, FiUser } from "react-icons/fi"
 import { dashboardConfig, Role } from "@/config/dashboard.config"
@@ -18,17 +18,28 @@ const COLORS = {
   text: "#FFFFFF",
 }
 
+type Notification = {
+  id: string
+  message: string
+  tag: "INFO" | "SUCCESS" | "CRITICAL"
+  color: "green" | "orange" | "red"
+  createdAt: string
+}
+
 export default function Navbar({ role, user }: NavbarProps) {
   const config = dashboardConfig[role]
   const [profileOpen, setProfileOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  //const [notifications, setNotifications] = useState<Notification[]>([])
+  const [notifications, setNotifications] = useState<Array<Notification>>([])
 
-  // Replace with real API later
-  const notifications = [
-    { id: 1, message: "VIP guest arriving today" },
-    { id: 2, message: "Suite 402 marked dirty" },
-    { id: 3, message: "New booking completed" },
-  ]
+
+  useEffect(() => {
+    fetch("/api/notifications")
+      .then((res) => res.json())
+      .then((data) => setNotifications(data))
+      .catch(console.error)
+  }, [])
 
   return (
     <header
@@ -86,7 +97,7 @@ export default function Navbar({ role, user }: NavbarProps) {
 
           {notifOpen && (
             <div
-              className="absolute right-0 mt-3 w-72 rounded-lg shadow-xl overflow-hidden"
+              className="absolute right-0 mt-3 w-80 rounded-lg shadow-xl overflow-hidden"
               style={{ backgroundColor: "#111" }}
             >
               <div className="px-4 py-2 text-sm font-semibold border-b border-gray-700">
@@ -98,12 +109,26 @@ export default function Navbar({ role, user }: NavbarProps) {
                   No new alerts
                 </div>
               ) : (
-                notifications.map((n) => (
+                notifications.map((n: Notification) => (
                   <div
                     key={n.id}
-                    className="px-4 py-3 text-sm cursor-pointer hover:bg-black transition"
+                    className="px-4 py-3 text-sm flex justify-between items-center cursor-pointer hover:bg-black transition"
                   >
-                    {n.message}
+                    <span>{n.message}</span>
+                    <span
+                      className="text-xs px-2 py-1 rounded-full font-semibold"
+                      style={{
+                        backgroundColor:
+                          n.color === "green"
+                            ? "#0f5132"
+                            : n.color === "red"
+                            ? "#842029"
+                            : "#664d03",
+                        color: "#fff",
+                      }}
+                    >
+                      {n.tag}
+                    </span>
                   </div>
                 ))
               )}
