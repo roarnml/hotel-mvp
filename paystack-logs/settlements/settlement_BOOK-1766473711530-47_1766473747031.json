@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2025-12-23T07:09:07.031Z",
+  "record": {
+    "booking": {
+      "id": "cmji8u7a00007ucukj61wu8rk",
+      "bookingRef": "BOOK-1766473711530-47",
+      "suiteId": "cmjgcm2eh000fuch44z15auzb",
+      "guestId": null,
+      "userId": null,
+      "name": "Daniel Irorunoluwa Akinyemi",
+      "email": "roarnml@gmail.com",
+      "checkIn": "2026-01-25T00:00:00.000Z",
+      "checkOut": "2026-01-26T00:00:00.000Z",
+      "amountPaid": 35000000,
+      "status": "CONFIRMED",
+      "paymentStatus": "SUCCESS",
+      "ticketNumber": null,
+      "checkInNumber": null,
+      "ticketPdfUrl": null,
+      "ticketIssuedAt": null,
+      "emailSentAt": null,
+      "createdAt": "2025-12-23T07:08:31.536Z",
+      "updatedAt": "2025-12-23T07:09:03.177Z"
+    },
+    "payment": {
+      "id": "cmji8u9y60009ucukmpmpur77",
+      "bookingId": "cmji8u7a00007ucukj61wu8rk",
+      "amount": 35000000,
+      "currency": "NGN",
+      "status": "SUCCESS",
+      "provider": "PAYSTACK",
+      "paystackReference": "a33pdf0ohx",
+      "transactionId": "5663987520",
+      "receiptUrl": null,
+      "webhookEventId": "charge.success_5663987520",
+      "paidAt": "2025-12-23T07:09:01.000Z",
+      "createdAt": "2025-12-23T07:08:35.166Z",
+      "updatedAt": "2025-12-23T07:09:02.291Z"
+    },
+    "paystack": {
+      "gatewayResponse": "Successful",
+      "fees": 200000,
+      "authorization": {
+        "authorization_code": "AUTH_t8b2jeams7",
+        "bin": "408408",
+        "last4": "4081",
+        "exp_month": "12",
+        "exp_year": "2030",
+        "channel": "card",
+        "card_type": "visa ",
+        "bank": "TEST BANK",
+        "country_code": "NG",
+        "brand": "visa",
+        "reusable": true,
+        "signature": "SIG_jpZ4P1RJt0V9YfZoIbqt",
+        "account_name": null,
+        "receiver_bank_account_number": null,
+        "receiver_bank": null
+      },
+      "customer": {
+        "id": 327420209,
+        "first_name": null,
+        "last_name": null,
+        "email": "roarnml@gmail.com",
+        "customer_code": "CUS_y3mf3ujx1ke0lye",
+        "phone": null,
+        "metadata": null,
+        "risk_action": "default",
+        "international_format_phone": null
+      },
+      "channel": "card",
+      "paidAt": "2025-12-23T07:09:01.000Z"
+    }
+  }
+}

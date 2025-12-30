@@ -1,0 +1,74 @@
+{
+  "receivedAt": "2025-12-23T07:09:01.401Z",
+  "event": "charge.success",
+  "signatureValid": true,
+  "payload": {
+    "event": "charge.success",
+    "data": {
+      "id": 5663987520,
+      "domain": "test",
+      "status": "success",
+      "reference": "a33pdf0ohx",
+      "amount": 35000000,
+      "message": null,
+      "gateway_response": "Successful",
+      "paid_at": "2025-12-23T07:09:01.000Z",
+      "created_at": "2025-12-23T07:08:37.000Z",
+      "channel": "card",
+      "currency": "NGN",
+      "ip_address": "105.112.203.240",
+      "metadata": {
+        "bookingId": "cmji8u7a00007ucukj61wu8rk",
+        "suiteId": "cmjgcm2eh000fuch44z15auzb",
+        "guestId": "",
+        "bookingRef": "BOOK-1766473711530-47",
+        "referrer": "https://06fdd478554c.ngrok-free.app/"
+      },
+      "fees_breakdown": null,
+      "log": null,
+      "fees": 200000,
+      "fees_split": null,
+      "authorization": {
+        "authorization_code": "AUTH_t8b2jeams7",
+        "bin": "408408",
+        "last4": "4081",
+        "exp_month": "12",
+        "exp_year": "2030",
+        "channel": "card",
+        "card_type": "visa ",
+        "bank": "TEST BANK",
+        "country_code": "NG",
+        "brand": "visa",
+        "reusable": true,
+        "signature": "SIG_jpZ4P1RJt0V9YfZoIbqt",
+        "account_name": null,
+        "receiver_bank_account_number": null,
+        "receiver_bank": null
+      },
+      "customer": {
+        "id": 327420209,
+        "first_name": null,
+        "last_name": null,
+        "email": "roarnml@gmail.com",
+        "customer_code": "CUS_y3mf3ujx1ke0lye",
+        "phone": null,
+        "metadata": null,
+        "risk_action": "default",
+        "international_format_phone": null
+      },
+      "plan": {},
+      "subaccount": {},
+      "split": {},
+      "order_id": null,
+      "paidAt": "2025-12-23T07:09:01.000Z",
+      "requested_amount": 35000000,
+      "pos_transaction_data": null,
+      "source": {
+        "type": "api",
+        "source": "merchant_api",
+        "entry_point": "transaction_initialize",
+        "identifier": null
+      }
+    }
+  }
+}
