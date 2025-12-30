@@ -1,0 +1,57 @@
+{
+  "name": "hotel-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "prisma:merge": "node scripts/merge-prisma.js",
+    "prisma:push": "npm run prisma:merge && npx prisma db push",
+    "prisma:generate": "npm run prisma:merge && npx prisma generate",
+    "prisma:migrate": "npm run prisma:merge && npx prisma migrate dev",
+    "prisma:seed": "ts-node prisma/seedHousekeeping.js"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.1.0",
+    "@prisma/client": "4.16.2",
+    "@sendgrid/mail": "^8.1.6",
+    "@tanstack/react-query": "^5.90.12",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.2.3",
+    "framer-motion": "^12.23.26",
+    "jspdf": "^3.0.4",
+    "nanoid": "^5.1.6",
+    "next": "16.0.9",
+    "next-auth": "^4.24.13",
+    "node-fetch": "^3.3.2",
+    "nodemailer": "^7.0.11",
+    "prisma": "~4.16.2",
+    "qrcode": "^1.5.4",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "react-icons": "^5.5.0",
+    "react-responsive-carousel": "^3.2.23",
+    "recharts": "^3.6.0",
+    "stripe": "^20.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20.19.26",
+    "@types/nodemailer": "^7.0.4",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "babel-plugin-react-compiler": "1.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.9",
+    "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
