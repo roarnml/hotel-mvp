@@ -21,7 +21,7 @@ export async function GET() {
     return NextResponse.json(
       bookings.map(b => ({
         id: b.id,
-        guestName: b.guest.name,
+        guestName: b.guest?.name,
         suite: b.suite?.name ?? undefined,
         status: b.status === "CHECKED_IN" ? "Checked-in" : "Pending",
       }))

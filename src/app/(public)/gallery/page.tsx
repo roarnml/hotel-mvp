@@ -16,7 +16,7 @@ export default async function GalleryPage() {
         <p className="text-center text-gray-500">No suites available at the moment.</p>
       ) : (
         <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {suites.map((suite) => (
+          {suites.map((suite: { id: string; name: string; price: number; images: string[] | null }) => (
             <SuiteCard
               key={suite.id}
               id={suite.id}

@@ -6,7 +6,7 @@ export type ArrivalRowData = {
   guestName: string
   roomNumber: string
   checkInTime: string
-  status: "Pending" | "Checked in"
+  status: "PENDING" | "CONFIRMED" | "CHECKED_IN" | "CHECKED_OUT" | "CANCELLED"
 }
 
 /**
@@ -79,8 +79,8 @@ export async function getTodaysArrivals(): Promise<ArrivalRowData[]> {
 function mapBookingStatus(status: BookingStatus): ArrivalRowData["status"] {
   switch (status) {
     case "CHECKED_IN":
-      return "Checked in"
+      return "CHECKED_IN"
     default:
-      return "Pending"
+      return "PENDING"
   }
 }

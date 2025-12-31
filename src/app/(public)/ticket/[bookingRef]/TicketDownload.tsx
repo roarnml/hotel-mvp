@@ -9,7 +9,7 @@ type Booking = {
   ticketNumber: string
   checkInNumber: string
   status: string
-  guest: { name: string; email: string; phone?: string }
+  guest: { name: string; email: string; phone: string }
   suite: { name: string; price: number }
   checkIn: string
   checkOut: string

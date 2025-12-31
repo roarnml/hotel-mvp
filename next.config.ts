@@ -1,23 +1,20 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  reactStrictMode: true, // safer to enable
+  reactStrictMode: true,
+
   compiler: {
     reactRemoveProperties: true,
   },
+
   async rewrites() {
     return [
       {
-        source: '/admin/:path*',
-        destination: '/admin/:path*',
+        source: "/admin/:path*",
+        destination: "/admin/:path*",
       },
-    ];
+    ]
   },
-  // Enable WASM SWC to avoid native binary issues on Windows
-  swcMinify: true,
-  experimental: {
-    wasmSWC: true,
-  },
-};
+}
 
-export default nextConfig;
+export default nextConfig

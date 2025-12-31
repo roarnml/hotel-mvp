@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
 export async function GET() {
   try {
     const users = await prisma.user.findMany({
       orderBy: { createdAt: "desc" },
-      select: { id: true, fullName: true, email: true, role: true, isActive: true },
+      select: { id: true, name: true, email: true, role: true, isActive: true },
     })
     return NextResponse.json({ users })
   } catch (err: any) {
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     const hashed = await bcrypt.hash(password, 10)
     const user = await prisma.user.create({
-      data: { fullName, email, password: hashed, role },
+      data: { name: fullName, email, password: hashed, role },
     })
 
     return NextResponse.json({ user })
@@ -39,7 +39,7 @@ export async function PATCH(req: NextRequest) {
 
     const updated = await prisma.user.update({
       where: { id },
-      data: { fullName, email, role, isActive },
+      data: { name: fullName, email, role, isActive },
     })
 
     return NextResponse.json({ user: updated })

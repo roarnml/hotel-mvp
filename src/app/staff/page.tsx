@@ -86,10 +86,13 @@ export default async function StaffDashboardPage() {
               {arrivals.map((arrival) => (
                 <ArrivalRow
                   key={arrival.id}
-                  guest={arrival.guest}
-                  room={arrival.room}
-                  time={arrival.time}
-                  status={arrival.status}
+                  guest={arrival.guestName}
+                  room={arrival.roomNumber}
+                  checkInTime={arrival.checkInTime}
+                  bookingStatus={arrival.status}
+                  bookingId={arrival.id}
+                  roomOccupied={arrival.roomNumber !== null}
+                  paymentStatus="PENDING"
                 />
               ))}
             </tbody>

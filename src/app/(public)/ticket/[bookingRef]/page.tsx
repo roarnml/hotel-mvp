@@ -115,7 +115,9 @@ export default async function TicketPage({ params }: TicketPageProps) {
       />
     </main>
   )
-}*/import { prisma } from "@/lib/prisma"
+}*/
+
+import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import TicketDownload from "./TicketDownload" // Client component
 
@@ -124,31 +126,41 @@ type TicketPageProps = {
 }
 
 export default async function TicketPage({ params }: TicketPageProps) {
-  // ✅ unwrap params if it's a promise
   const { bookingRef } = await params
 
-  if (!bookingRef || typeof bookingRef !== "string") {
-    notFound()
-  }
+  if (!bookingRef || typeof bookingRef !== "string") notFound()
 
   const booking = await prisma.booking.findUnique({
     where: { bookingRef },
     include: { suite: true, guest: true },
   })
 
-  if (!booking) {
-    notFound()
-  }
+  if (!booking) notFound()
+  if (booking.paymentStatus !== "SUCCESS") notFound()
 
-  // 🚫 ABSOLUTE RULE: no payment, no ticket
-  if (booking.paymentStatus !== "SUCCESS") {
-    notFound()
-  }
-  
-  // 🔐 Assert invariants AFTER guard
+  // Map DB fields to types expected by TicketDownload
   const safeBooking = {
-    ...booking,
-    ticketNumber: booking.ticketNumber!,
+    bookingRef: booking.bookingRef,
+    ticketNumber: booking.ticketNumber ?? "",
+    checkInNumber: booking.checkInNumber ? booking.checkInNumber.toString() : "",
+    status: booking.paymentStatus,
+    guest: booking.guest
+      ? {
+          name: booking.guest.name,
+          email: booking.guest.email,
+          phone: booking.guest.phone ?? "",
+        }
+      : {
+          name: "Unknown Guest",
+          email: "unknown@example.com",
+          phone: "",
+        },
+    suite: {
+      name: booking.suite.name,
+      price: booking.suite.price,
+    },
+    checkIn: booking.checkIn ? booking.checkIn.toISOString() : "",
+    checkOut: booking.checkOut ? booking.checkOut.toISOString() : "",
   }
 
   return <TicketDownload booking={safeBooking} />

@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma"
+import UsersTable from "./users-table"
 
 export default async function AdminUsersPage() {
   const bookings = await prisma.booking.findMany({
     where: {
-      paymentStatus: "PAID",
+      paymentStatus: "SUCCESS",
     },
     orderBy: {
       createdAt: "desc",
@@ -27,7 +28,7 @@ export default async function AdminUsersPage() {
 
     if (existing) {
       existing.bookings += 1
-      existing.totalSpent += b.totalAmount
+      existing.totalSpent += b.amountPaid ?? 0
       existing.lastBooking =
         b.createdAt > existing.lastBooking
           ? b.createdAt
@@ -35,7 +36,7 @@ export default async function AdminUsersPage() {
     } else {
       usersMap.set(key, {
         bookings: 1,
-        totalSpent: b.totalAmount,
+        totalSpent: b.amountPaid ?? 0,
         lastBooking: b.createdAt,
       })
     }

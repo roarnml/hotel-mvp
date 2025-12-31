@@ -20,15 +20,20 @@ export async function GET() {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json()
-    const { ticketNumber, checkedIn } = body
+    const { ticketNumber, checkIn } = body
 
-    if (!ticketNumber || typeof checkedIn !== "boolean") {
-      throw new Error("Missing ticketNumber or checkedIn status")
+    if (!ticketNumber || typeof checkIn !== "boolean") {
+      throw new Error("Missing ticketNumber or checkIn status")
     }
 
+    // Update the booking's status to CHECKED_IN if checkIn is true
     const updated = await prisma.booking.update({
       where: { ticketNumber },
-      data: { checkedIn, checkedInAt: checkedIn ? new Date() : null },
+      data: {
+        status: checkIn ? "CHECKED_IN" : "CONFIRMED",
+        // Optional: record check-in time
+        ticketIssuedAt: checkIn ? new Date() : null,
+      },
     })
 
     return NextResponse.json({ booking: updated })

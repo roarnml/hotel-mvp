@@ -36,9 +36,10 @@ export default async function AdminSuiteDetailPage({ params }: PageProps) {
           start: r.start.toDateString(),
           end: r.end.toDateString(),
           price: r.price,
-          label: r.label,
+          label: r.label ?? undefined,
         }))}
       />
+
     </div>
   )
 }

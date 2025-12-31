@@ -42,7 +42,7 @@ export async function getPriorityAlerts(): Promise<PriorityAlert[]> {
   const vipAlerts: PriorityAlert[] = vipArrivals.map(b => ({
     id: b.id,
     type: "VIP_ARRIVAL",
-    message: `VIP Arrival · ${b.guest.name} · ${b.suite.name}`,
+    message: `VIP Arrival · ${b.guest?.name} · ${b.suite.name}`,
     time: b.checkIn.toLocaleTimeString("en-NG", {
       hour: "2-digit",
       minute: "2-digit",

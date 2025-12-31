@@ -34,7 +34,7 @@ export async function GET() {
   /* 4. Housekeeping Tasks NOT Done */
   const criticalTasks = await prisma.housekeepingTask.findMany({
     where: { status: { not: "DONE" } },
-    select: { id: true, suiteName: true },
+    select: { id: true, suite: true },
   })
 
   /* Normalize */
@@ -65,7 +65,7 @@ export async function GET() {
 
     ...criticalTasks.map((t) => ({
       id: `task-${t.id}`,
-      message: `Housekeeping pending for ${t.suiteName}`,
+      message: `Housekeeping pending for ${t.suite}`,
       tag: "CRITICAL",
       color: "red",
       createdAt: new Date(),

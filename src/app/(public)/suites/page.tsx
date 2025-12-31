@@ -15,7 +15,7 @@ export default async function SuitesPage() {
 
   return (
     <div className="max-w-7xl mx-auto mt-12 px-4 md:px-8 grid md:grid-cols-3 gap-6 py-16">
-      {suites.map((suite) => (
+      {suites.map((suite: { id: string; name: string; price: number; images: string[] , description: string, capacity: number }) => (
         <SuiteCard
           key={suite.id}
           id={suite.id}

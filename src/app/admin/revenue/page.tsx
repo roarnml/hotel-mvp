@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma"
 import RevenueChart from "./revenue-chart"
 import ExportCSVButton from "./export-csv"
+import { PrismaClient } from "@prisma/client"
+
 
 function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1)
@@ -22,18 +24,19 @@ export default async function AdminRevenuePage() {
     orderBy: { createdAt: "asc" },
   })
 
-  // ---- Metrics ----
+  // TypeScript now knows `bookings` is an array of your Booking model
   const totalRevenue = bookings.reduce(
-    (sum, b) => sum + b.totalAmount,
+    (sum, b) => sum + (b.amountPaid ?? 0),
     0
   )
+
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
   const todayRevenue = bookings
     .filter(b => b.createdAt >= today)
-    .reduce((sum, b) => sum + b.totalAmount, 0)
+    .reduce((sum, b) => sum + (b.amountPaid ?? 0), 0)
 
   // ---- Monthly aggregation ----
   const monthlyMap: Record<string, number> = {}
@@ -41,7 +44,7 @@ export default async function AdminRevenuePage() {
   bookings.forEach(b => {
     const monthKey = startOfMonth(b.createdAt).toISOString()
     monthlyMap[monthKey] =
-      (monthlyMap[monthKey] || 0) + b.totalAmount
+      (monthlyMap[monthKey] || 0) + (b.amountPaid ?? 0)
   })
 
   const monthlyRevenue = Object.entries(monthlyMap).map(

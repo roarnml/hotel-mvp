@@ -34,12 +34,13 @@ export async function getArrivals(): Promise<Arrival[]> {
 
   return bookings.map((b) => ({
     id: b.id,
-    guestName: b.guest.name,
+    guestName: b.guest?.name || "Unknown Guest",
     suite: b.suite.name,
     checkIn: b.checkIn.toISOString().split("T")[0],
-    vip: b.guest.isVIP,
+    vip: b.guest?.isVIP ?? false,
     status: b.status === "CHECKED_IN" ? "Checked-in" : "Pending",
   }))
+
 }
 
 // Check-in a guest

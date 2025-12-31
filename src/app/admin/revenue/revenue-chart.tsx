@@ -21,8 +21,8 @@ export default function RevenueChart({
           <XAxis dataKey="month" />
           <YAxis />
           <Tooltip
-            formatter={(v: number) =>
-              `₦${v.toLocaleString()}`
+            formatter={(v: number | undefined) =>
+              v !== undefined ? `₦${v.toLocaleString()}` : ""
             }
           />
           <Bar dataKey="revenue" radius={[6, 6, 0, 0]} />

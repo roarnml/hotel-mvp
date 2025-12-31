@@ -55,7 +55,7 @@ export default function BookingTimeline({
 const iconStyle =
   "w-8 h-8 rounded-full flex items-center justify-center text-white"
 
-const iconMap: Record<TimelineStatus, JSX.Element> = {
+const iconMap: Record<TimelineStatus, React.ReactNode> = {
   CREATED: (
     <div className={`${iconStyle} bg-gray-400`}>
       <FiClock size={16} />

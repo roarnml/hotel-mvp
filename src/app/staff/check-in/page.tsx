@@ -72,7 +72,7 @@ export default function StaffCheckInPage() {
     load()
   }, [])
 
-  function confirmCheckIn(suiteId: string) {
+  async function confirmCheckIn(suiteId: string): Promise<void> {
     if (!selectedGuest) return
 
     startTransition(async () => {

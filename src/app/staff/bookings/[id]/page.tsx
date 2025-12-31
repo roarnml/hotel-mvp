@@ -31,7 +31,7 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 
 export default function BookingDetailPage() {
   const params = useParams()
-  const bookingId = params.id
+  const bookingId = params.id as string
   if (!bookingId) throw new Error("Booking ID missing in URL")
 
   const [booking, setBooking] = useState<BookingDetail | null>(null)

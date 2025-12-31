@@ -25,7 +25,7 @@ export default function StaffArrivalsPage() {
     try {
       const res = await fetch("/api/staff/arrivals");
       const data = await res.json();
-      setArrivals(data.sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime()));
+      setArrivals(data.sort((a: Arrival, b: Arrival) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime()));
     } finally {
       setLoading(false);
     }

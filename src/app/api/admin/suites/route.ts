@@ -13,11 +13,23 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, description, price, images } = await req.json()
-    if (!name || !price) throw new Error("Name and price are required")
+    const { name, description, price, images, capacity, status, roomNumber } = await req.json()
+
+    if (!name || !price || !capacity) {
+      throw new Error("Name, price, and capacity are required")
+    }
 
     const suite = await prisma.suite.create({
-      data: { name, description, price, images, isActive: true },
+      data: {
+        name,
+        description,
+        price,
+        images: images || [],
+        isActive: true,
+        capacity,
+        status: status || "AVAILABLE",
+        roomNumber: roomNumber || "UNASSIGNED",
+      },
     })
 
     return NextResponse.json({ suite })
@@ -29,12 +41,21 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { id, name, description, price, images, isActive } = await req.json()
+    const { id, name, description, price, images, isActive, capacity, status, roomNumber } = await req.json()
     if (!id) throw new Error("Suite ID is required")
 
     const updated = await prisma.suite.update({
       where: { id },
-      data: { name, description, price, images, isActive },
+      data: {
+        name,
+        description,
+        price,
+        images,
+        isActive,
+        capacity,
+        status,
+        roomNumber,
+      },
     })
 
     return NextResponse.json({ suite: updated })

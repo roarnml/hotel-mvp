@@ -108,7 +108,7 @@ export async function markGuestVIP(bookingId: string) {
   if (!booking) throw new Error("Booking not found")
 
   await prisma.guest.update({
-    where: { id: booking.guestId },
+    where: { id: booking.guestId ?? "" },
     data: { isVIP: true },
   })
 

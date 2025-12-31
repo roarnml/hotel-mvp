@@ -62,7 +62,7 @@ export async function GET() {
   // Priority Alerts (basic MVP)
   // -----------------------------
   const dirtySuites = await prisma.suite.findMany({
-    where: { status: "DIRTY" },
+    where: { status: "MAINTENANCE" },
     select: { id: true, name: true },
   })
 
