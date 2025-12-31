@@ -18,7 +18,7 @@ const heroSlides = [
   { type: "video", src: "/videos/hero.mp4" },
 ]
 
-export default async function GalleryUI({ suites }: { suites: any[] }) {
+export default function GalleryUI({ suites }: { suites: any[] }) {
 
 
   return (
