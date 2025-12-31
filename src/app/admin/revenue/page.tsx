@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import RevenueChart from "./revenue-chart"
 import ExportCSVButton from "./export-csv"
-import { PrismaClient } from "@prisma/client"
+//import { PrismaClient } from "@prisma/client"
 
 
 function startOfMonth(date: Date) {
