@@ -10,10 +10,10 @@ export default function Footer() {
         {/* Hotel Info */}
         <div>
           <h2 className="text-2xl font-bold text-white mb-4">Comfort Resort & Suites</h2>
-          <p>Luxury stays, unforgettable experiences.</p>
-          <p className="mt-2">123 Hotel Lane, Cityville, Country</p>
-          <p className="mt-1">Email: info@comfortresort.com</p>
-          <p>Phone: +123 456 7890</p>
+          <p>Affordable Luxury in a place of comfort</p>
+          <p className="mt-2">Plot 4 & 5 Francis Elusogbon Avenue, Onda Akoja Family Layout, Aba Iya Gani, Dangote Bus Stop, off Ilesa Road, Ile-Ife</p>
+          <p className="mt-1">Email: comfortrs@outlook.com</p>
+          <p>Phone: +234 803 303 9194</p>
         </div>
 
         {/* Quick Links */}
@@ -26,7 +26,7 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/#suites" className="hover:text-blue-400 transition">
+              <Link href="#suites" className="hover:text-blue-400 transition">
                 Suites
               </Link>
             </li>
@@ -35,11 +35,11 @@ export default function Footer() {
                 Gallery
               </Link>
             </li>
-            <li>
+            {/*<li>
               <Link href="/booking" className="hover:text-blue-400 transition">
                 Book Now
               </Link>
-            </li>
+            </li>*/}
           </ul>
         </div>
 

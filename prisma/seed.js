@@ -17,10 +17,11 @@ async function main() {
   ]
 
   for (const u of users) {
-    const hashed = await bcrypt.hash(u.password, 10)
-    await prisma.user.create({
-      data: { ...u, password: hashed },
-    })
+    const existing = await prisma.user.findUnique({ where: { email: u.email } })
+    if (!existing) {
+      const hashed = await bcrypt.hash(u.password, 10)
+      await prisma.user.create({ data: { ...u, password: hashed } })
+    }
   }
 
   // --------------------
@@ -41,115 +42,133 @@ async function main() {
   // --------------------
   // GUEST
   // --------------------
-  const guest = await prisma.guest.create({
-    data: {
-      name: "John Doe",
-      email: "john.doe@gmail.com",
-      phone: "+2348012345678",
-      address: "Lagos, Nigeria",
-      isVIP: true,
-    },
-  })
-
-  // --------------------
-  // SUITES
-  // --------------------
-  const deluxeSuite = await prisma.suite.create({
-    data: {
-      name: "Deluxe Suite",
-      description: "Spacious deluxe suite with ocean view",
-      price: 120000,
-      images: [
-        "/rooms/deluxe/business.jpg",
-        "/rooms/deluxe/deluxe.jpg",
-        "/rooms/deluxe/family.jpg",
-      ],
-      capacity: 2,
-      features: ["King Bed", "Ocean View", "WiFi", "Mini Bar"],
-    },
-  })
-
-  const presidentialSuite = await prisma.suite.create({
-    data: {
-      name: "Presidential Suite",
-      description: "Luxury presidential suite with private lounge",
-      price: 350000,
-      images: [
-        "/rooms/presidential/presidential.jpg",
-        "/rooms/presidential/royal.jpg",
-      ],
-      capacity: 4,
-      features: ["Private Lounge", "Butler Service", "Jacuzzi"],
-    },
-  })
-
-  // --------------------
-  // SEASONAL RATE
-  // --------------------
-  await prisma.seasonalRate.create({
-    data: {
-      suiteId: deluxeSuite.id,
-      start: new Date("2025-12-15"),
-      end: new Date("2026-01-10"),
-      price: 150000,
-      label: "Festive Season",
-    },
-  })
-
-  // --------------------
-  // BOOKING (PENDING)
-  // --------------------
-  const booking = await prisma.booking.create({
-    data: {
-      bookingRef: "BOOK-DEMO-001",
-      suiteId: deluxeSuite.id,
-      guestId: guest.id,
-      name: guest.name,
-      email: guest.email,
-      checkIn: new Date("2025-12-20"),
-      checkOut: new Date("2025-12-23"),
-      status: "PENDING",
-      paymentStatus: "PENDING",
-    },
-  })
-
-  // --------------------
-  // PAYMENT (PAYSTACK, PENDING)
-  // --------------------
-  await prisma.payment.create({
-    data: {
-      bookingId: booking.id,
-      amount: 360000,
-      currency: "NGN",
-      status: "PENDING",
-      provider: "PAYSTACK",
-      paystackReference: "PSK_TEST_REF_001",
-    },
-  })
-
-  // --------------------
-  // HOUSEKEEPING TASKS
-  // --------------------
-  const suites = [deluxeSuite, presidentialSuite]
-  const statuses = ["PENDING", "IN_PROGRESS", "DONE"]
-
-  for (let i = 0; i < 10; i++) {
-    const suite = faker.helpers.arrayElement(suites)
-    const staff = faker.helpers.arrayElement(housekeepingStaff)
-    const status = faker.helpers.arrayElement(statuses)
-
-    await prisma.housekeepingTask.create({
+  const guestEmail = "john.doe@gmail.com"
+  let guest = await prisma.guest.findUnique({ where: { email: guestEmail } })
+  if (!guest) {
+    guest = await prisma.guest.create({
       data: {
-        suiteId: suite.id,
-        assignedToId: staff.id,
-        status,
-        startedAt: status !== "PENDING" ? faker.date.recent() : null,
-        completedAt: status === "DONE" ? faker.date.recent() : null,
+        name: "John Doe",
+        email: guestEmail,
+        phone: "+2348012345678",
+        address: "Lagos, Nigeria",
+        isVIP: true,
       },
     })
   }
 
-  console.log("✅ Database reset & seeded successfully")
+  // --------------------
+  // SUITES
+  // --------------------
+  const suitesData = [
+    {
+      name: "VIP Chalet",
+      description: "Luxury VIP chalet with 2 ensuite bedrooms and fully equipped living space",
+      price: 60000,
+      capacity: 4,
+      images: [
+        "/rooms/vip/PHOTO-2025-05-03-18-50-32.jpg",
+        "/rooms/vip/PHOTO-2025-06-07-21-00-14.jpg",
+        "/rooms/vip/image-iv.jpg",
+      ],
+      features: [
+        "2 Ensuite Bedrooms",
+        "Living Room",
+        "Smart TV",
+        "Kitchen",
+        "Microwave Oven",
+        "Mini Fridge",
+        "Cooking Utensils",
+      ],
+      video: "/rooms/vip/VIP.mp4",
+    },
+    ...Array.from({ length: 6 }).map((_, i) => ({
+      name: `Regular Chalet ${i + 1}`,
+      description: "Comfortable 2-bedroom ensuite chalet ideal for regular guests",
+      price: 50000,
+      capacity: 2,
+      images: [
+        "/rooms/regular/IMG_2659.jpg",
+        "/rooms/regular/IMG_2687.jpg",
+        "/rooms/regular/IMG_2663.jpg",
+        "/rooms/regular/IMG_2710.jpg",
+        "/rooms/regular/IMG_2644.jpg",
+      ],
+      features: [
+        "2 Ensuite Bedrooms",
+        "Living Room",
+        "Comfortable Sofa",
+        "Smart TV",
+        "Kitchen",
+        "Microwave Oven",
+        "Mini Fridge",
+      ],
+    })),
+  ]
+
+  const suites = []
+  for (const s of suitesData) {
+    let suite = await prisma.suite.findUnique({ where: { name: s.name } })
+    if (!suite) {
+      const { video, ...dataWithoutVideo } = s
+      suite = await prisma.suite.create({ data: dataWithoutVideo })
+    }
+    suites.push(suite)
+  }
+
+  // --------------------
+  // BOOKING (PENDING)
+  // --------------------
+  const bookingRef = "BOOK-DEMO-001"
+  let booking = await prisma.booking.findUnique({ where: { bookingRef } })
+  if (!booking) {
+    booking = await prisma.booking.create({
+      data: {
+        bookingRef,
+        suiteId: suites[0].id, // VIP Chalet
+        guestId: guest.id,
+        name: guest.name,
+        email: guest.email,
+        checkIn: new Date("2025-12-20"),
+        checkOut: new Date("2025-12-23"),
+        status: "PENDING",
+        paymentStatus: "PENDING",
+      },
+    })
+  }
+
+  // --------------------
+  // PAYMENT
+  // --------------------
+  const payRef = "PSK_TEST_REF_001"
+  const existingPayment = await prisma.payment.findUnique({ where: { paystackReference: payRef } })
+  if (!existingPayment) {
+    await prisma.payment.create({
+      data: {
+        bookingId: booking.id,
+        amount: 180000,
+        currency: "NGN",
+        status: "PENDING",
+        provider: "PAYSTACK",
+        paystackReference: payRef,
+      },
+    })
+  }
+
+  // --------------------
+  // HOUSEKEEPING TASKS
+  // --------------------
+  const statuses = ["PENDING", "IN_PROGRESS", "DONE"]
+  for (let i = 0; i < 10; i++) {
+    await prisma.housekeepingTask.create({
+      data: {
+        suiteId: faker.helpers.arrayElement(suites).id,
+        assignedToId: faker.helpers.arrayElement(housekeepingStaff).id,
+        status: faker.helpers.arrayElement(statuses),
+      },
+    })
+  }
+
+  console.log("✅ Database seeded with 1 VIP and 6 Regular Chalets")
 }
 
 main()

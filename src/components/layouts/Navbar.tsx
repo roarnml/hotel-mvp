@@ -109,13 +109,14 @@ export default function Navbar() {
         <div className="h-16 flex items-center justify-between">
           
           {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-white font-bold text-lg"
-          >
-            <FiHome />
-            Comfort Resort
+          <Link href="/" className="flex items-center gap-2">
+            <img 
+              src="/logo/logo.png" 
+              alt="Comfort Resort Logo" 
+              className="h-20 w-auto" 
+            />
           </Link>
+
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex gap-8">

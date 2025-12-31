@@ -57,7 +57,7 @@ export default function AdminLoginForm() {
       onSubmit={handleSubmit}
       className="w-full max-w-md bg-white/20 backdrop-blur-md border border-white/20 rounded-3xl p-10 flex flex-col gap-6 shadow-xl text-white"
     >
-      <h1 className="text-3xl font-bold text-center mb-4">GrandStay Portal</h1>
+      <h1 className="text-3xl font-bold text-center mb-4">Comfort Resort & Suites</h1>
       <p className="text-center text-gray-200 mb-6">Secure access for authorized users only</p>
 
       {error && (

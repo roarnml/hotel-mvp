@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect } from "react"
-import jsPDF from "jspdf"
-import QRCode from "qrcode"
+import { notFound } from "next/navigation"
 
 type Booking = {
   bookingRef: string
@@ -18,46 +17,9 @@ type Booking = {
 type Props = { booking: Booking }
 
 export default function TicketDownload({ booking }: Props) {
-  const downloadPremiumTicket = async () => {
-    const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: [500, 250] })
-    
-    // Black background
-    doc.setFillColor(0, 0, 0)
-    doc.rect(0, 0, 500, 250, "F")
-    
-    // White card
-    doc.setFillColor(255, 255, 255)
-    doc.roundedRect(15, 15, 470, 220, 10, 10, 'F')
-
-    // Title
-    doc.setFontSize(20)
-    doc.setTextColor(0, 0, 0)
-    doc.setFont('helvetica', 'bold')
-    doc.text('🎟️ Hotel Booking Ticket', 30, 40)
-
-    // Details
-    doc.setFontSize(12)
-    doc.setFont('helvetica', 'normal')
-    doc.text(`Name: ${booking.guest.name}`, 30, 65)
-    doc.text(`Email: ${booking.guest.email}`, 30, 80)
-    if (booking.guest.phone) doc.text(`Phone: ${booking.guest.phone}`, 30, 95)
-    doc.text(`Booking Ref: ${booking.bookingRef}`, 30, 110)
-    doc.text(`Ticket Number: ${booking.ticketNumber}`, 30, 125)
-    doc.text(`Check-In Code: ${booking.checkInNumber}`, 30, 140)
-    doc.text(`Suite: ${booking.suite.name}`, 30, 155)
-    doc.text(`Price: ₦${booking.suite.price}`, 30, 170)
-    doc.text(`Check-In: ${new Date(booking.checkIn).toLocaleDateString()}`, 30, 185)
-    doc.text(`Check-Out: ${new Date(booking.checkOut).toLocaleDateString()}`, 30, 200)
-
-    // QR code
-    const qrData = await QRCode.toDataURL(booking.bookingRef)
-    doc.addImage(qrData, 'PNG', 350, 60, 120, 120)
-
-    doc.save(`Ticket-${booking.bookingRef}.pdf`)
-  }
 
   useEffect(() => {
-    downloadPremiumTicket()
+    //if (!booking.ticketNumber) notFound()
     const timer = setTimeout(() => {
       window.location.href = "/"
     }, 60000)
@@ -70,12 +32,14 @@ export default function TicketDownload({ booking }: Props) {
         <p className="font-semibold">🎉 Your booking is confirmed!</p>
         <p className="text-sm">
           Your ticket has been sent to your email. You can also{" "}
-          <button
-            onClick={downloadPremiumTicket}
+          <a
+            href={`/tickets/${booking.ticketNumber}.pdf`}
+            target="_blank"
             className="text-yellow-300 underline hover:text-yellow-400"
           >
-            download your PDF ticket here
-          </button>
+            Download your PDF ticket
+          </a>
+
           .
         </p>
       </div>

@@ -194,7 +194,7 @@ export default function BookingSuccessPage() {
               {/* 📦 QR Code */}
               <div className="bg-white p-3 rounded-lg">
                 <QRCodeCanvas
-                  value={`${process.env.NEXT_PUBLIC_APP_URL}/verify/${ticket.ticketNumber}`}
+                  value={`${ticket.ticketNumber}`}
                   size={120}
                 />
               </div>

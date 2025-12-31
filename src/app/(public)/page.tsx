@@ -44,7 +44,7 @@ export default function Home() {
   }
 
   return (
-    <main className="bg-[#75240E] text-white">
+    <main className="bg-black text-white">
       {/* ================= HERO / FIRST IMPRESSION ================= */}
       <section className="relative h-screen w-full overflow-hidden">
         {/* Background media */}
@@ -53,13 +53,13 @@ export default function Home() {
           muted
           loop
           playsInline
-          className="absolute inset-0 h-full w-full object-cover opacity-80"
+          className="absolute inset-0 h-full w-full object-cover opacity-30"
         >
           <source src="/videos/hero.mp4" type="video/mp4" />
         </video>
 
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#D55605]/40 via-[#75240E]/60 to-[black]" />
+        <div className="absolute inset-0 bg-linear-to-b from-white/30 via-slate-500/60 to-[black]" />
 
         {/* Hero content */}
         <div className="relative z-10 flex h-full flex-col items-center justify-center text-center px-6">

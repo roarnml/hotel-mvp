@@ -40,23 +40,52 @@ export async function GET(req: NextRequest) {
 
   // 🎟️ Ticket not generated yet
   if (!booking.ticketPdfUrl) {
-    const updatedBooking = await generateTicket(booking.id)
+    try {
+      const updatedBooking = await generateTicket(booking.id)
 
-    if (updatedBooking.ticketPdfUrl && !updatedBooking.emailSentAt) {
-      await sendTicketEmail(
-        updatedBooking.email,
-        "Your Booking Ticket",
-        updatedBooking.ticketPdfUrl
-      )
+      if (updatedBooking.ticketPdfUrl && !updatedBooking.emailSentAt) {
+        await sendTicketEmail(
+          updatedBooking.email,
+          "Your Booking Ticket",
+          updatedBooking.ticketPdfUrl
+        )
 
-      await prisma.booking.update({
+        await prisma.booking.update({
+          where: { id: booking.id },
+          data: { emailSentAt: new Date() },
+        })
+      }
+
+      // Refresh the booking from DB to make sure all fields are up-to-date
+      const refreshedBooking = await prisma.booking.findUnique({
         where: { id: booking.id },
-        data: { emailSentAt: new Date() },
       })
-    }
 
-    return NextResponse.json({ status: "processing" })
+      return NextResponse.json({
+        status: refreshedBooking?.ticketPdfUrl ? "ready" : "processing",
+        ticket: refreshedBooking
+          ? {
+              ticketNumber: refreshedBooking.ticketNumber,
+              bookingRef: refreshedBooking.bookingRef,
+              guestName: refreshedBooking.name,
+              email: refreshedBooking.email,
+              checkIn: refreshedBooking.checkIn,
+              checkOut: refreshedBooking.checkOut,
+              ticketPdfUrl: refreshedBooking.ticketPdfUrl,
+              emailSentAt: refreshedBooking.emailSentAt,
+              amountPaid: refreshedBooking.amountPaid,
+            }
+          : null,
+      })
+    } catch (err) {
+      console.error(err)
+      return NextResponse.json(
+        { status: "error", message: "Ticket generation failed" },
+        { status: 500 }
+      )
+    }
   }
+
 
   // ✅ Fully ready — polling stops
   return NextResponse.json({

@@ -16,12 +16,12 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         />
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/80" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/40 to-black/80" />
 
         {/* Brand */}
         <div className="relative z-10">
           <h1 className="text-3xl font-light tracking-wide text-white">
-            Confort Resort & Suites
+            Comfort Resort & Suites
           </h1>
           <p className="mt-2 text-sm text-neutral-300">
             World-class hospitality, thoughtfully delivered
@@ -55,7 +55,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
           {/* Footer */}
           <p className="mt-8 text-center text-xs text-neutral-400">
-            © {new Date().getFullYear()} Aurelia Hotels. All rights reserved.
+            © {new Date().getFullYear()} Comfort Resorts and Suites. All rights reserved.
           </p>
         </div>
       </div>

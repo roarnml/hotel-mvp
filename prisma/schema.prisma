@@ -46,24 +46,26 @@ model Guest {
 //////////////////////
 
 model Suite {
-  id          String      @id @default(cuid())    // Suite unique ID
-  name        String      @unique                 // Public-facing suite name
-  description String                              // Suite description
-  price       Int                                 // Base price per night (kobo)
-  images      String[]                            // Image URLs
-  isActive    Boolean     @default(true)          // Can be booked or not
-  status      SuiteStatus @default(AVAILABLE)     // Operational status
-  capacity    Int                                 // Max occupants
-  features    String[]                            // Amenities list
-  roomNumber  String      @default("UNASSIGNED")  // Physical room assignment
+  id          String      @id @default(cuid())
+  name        String      @unique
+  description String
+  price       Int
+  images      String[]
+  video       String?                     // ✅ OPTIONAL VIDEO
+  isActive    Boolean     @default(true)
+  status      SuiteStatus @default(AVAILABLE)
+  capacity    Int
+  features    String[]
+  roomNumber  String      @default("UNASSIGNED")
 
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  bookings    Booking[]                           // Booking history
-  seasonalRates SeasonalRate[]                    // Variable pricing
-  housekeepingTasks HousekeepingTask[]            // Cleaning lifecycle
+  bookings          Booking[]
+  seasonalRates     SeasonalRate[]
+  housekeepingTasks HousekeepingTask[]
 }
+
 
 enum SuiteStatus {
   AVAILABLE
