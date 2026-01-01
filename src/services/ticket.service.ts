@@ -67,7 +67,7 @@ export async function generateTicket(bookingId: string) {
 }*/
 
 import { prisma } from "@/lib/prisma"
-import puppeteer from "puppeteer-core" // notice puppeteer-core
+import puppeteer from "puppeteer" // notice puppeteer-core
 import path from "path"
 import fs from "fs"
 
