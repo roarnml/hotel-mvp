@@ -145,11 +145,11 @@ export async function sendTicketEmail({
 }
 */
 
-
 // src/services/email.service.ts
 import nodemailer from "nodemailer"
 import path from "path"
 import fs from "fs"
+import { prisma } from "@/lib/prisma"
 
 interface SendTicketEmailOptions {
   to: string
@@ -164,12 +164,7 @@ interface SendTicketEmailOptions {
 
   amountPaid: string
 
-  suiteName: {
-    name: string
-    roomNumber: string
-    capacity: number
-    features: string[]
-  }
+  suiteName: string // <-- now we just pass the ID
 
   pdfUrl: string // e.g. "/tickets/TKT-123.pdf"
 }
@@ -186,6 +181,19 @@ export async function sendTicketEmail({
   suiteName,
   pdfUrl,
 }: SendTicketEmailOptions) {
+  // 🔹 Fetch suite details from DB
+  const suite = await prisma.suite.findUnique({
+    where: { name: suiteName },
+  })
+
+  if (!suite) {
+    throw new Error(`Suite not found for name ${suiteName}`)
+  }
+
+  const featureList = suite.features?.length
+    ? suite.features.map(f => `• ${f}`).join("<br />")
+    : "• Premium comfort guaranteed"
+
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT),
@@ -201,10 +209,6 @@ export async function sendTicketEmail({
   if (!fs.existsSync(pdfPath)) {
     throw new Error(`Ticket PDF not found at ${pdfPath}`)
   }
-
-  const featureList = suiteName.features?.length
-    ? suiteName.features.map(f => `• ${f}`).join("<br />")
-    : "• Premium comfort guaranteed"
 
   await transporter.sendMail({
     from: `"Comfort Resort & Suites" <${process.env.SMTP_USER}>`,
@@ -254,15 +258,15 @@ export async function sendTicketEmail({
                   </tr>
                   <tr>
                     <td>Suite</td>
-                    <td align="right">${suiteName.name}</td>
+                    <td align="right">${suite.name}</td>
                   </tr>
                   <tr>
                     <td>Room Number</td>
-                    <td align="right"><strong>${suiteName.roomNumber}</strong></td>
+                    <td align="right"><strong>${suite.roomNumber}</strong></td>
                   </tr>
                   <tr>
                     <td>Capacity</td>
-                    <td align="right">${suiteName.capacity} Guest(s)</td>
+                    <td align="right">${suite.capacity} Guest(s)</td>
                   </tr>
                   <tr>
                     <td>Check-in</td>
