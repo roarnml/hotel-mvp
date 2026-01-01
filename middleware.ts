@@ -23,6 +23,7 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
+    secureCookie: process.env.NODE_ENV === "production",
   })
 
   // 3️⃣ Block unauthenticated access to protected areas

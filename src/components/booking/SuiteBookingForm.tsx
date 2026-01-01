@@ -1,3 +1,4 @@
+// hotel-mvp/src/components/booking/SuiteBookingForm.tsx
 'use client'
 
 import { useState, useEffect } from "react"

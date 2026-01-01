@@ -1,0 +1,25 @@
+{
+  "loggedAt": "2026-01-01T12:59:00.637Z",
+  "endpoint": "/transaction/initialize",
+  "method": "POST",
+  "statusCode": 200,
+  "requestBody": {
+    "email": "roarnml@gmail.com",
+    "amount": 75000000,
+    "metadata": {
+      "bookingId": "cmjvgbf8h0006ucywnwyznlqy",
+      "bookingRef": "BOOK-1767272332763-86",
+      "guestId": "cmjvgbd990004ucywkcx7iwtr"
+    },
+    "callback_url": "undefined/booking/success?reference=BOOK-1767272332763-86"
+  },
+  "responseBody": {
+    "status": true,
+    "message": "Authorization URL created",
+    "data": {
+      "authorization_url": "https://checkout.paystack.com/wudk34xgo4wdkbn",
+      "access_code": "wudk34xgo4wdkbn",
+      "reference": "53bfliue8g"
+    }
+  }
+}

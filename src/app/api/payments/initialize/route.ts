@@ -108,10 +108,23 @@ export async function POST(req: NextRequest) {
       checkIn: new Date(checkInDate),
       checkOut: new Date(checkOutDate),
       userId,
+      
     })
 
     // 3️⃣ Calculate amount (use nights if you want later)
-    const amountInKobo = booking.suite.price * 100
+    // 3️⃣ Calculate number of nights (SERVER-SIDE)
+    const checkIn = new Date(checkInDate)
+    const checkOut = new Date(checkOutDate)
+
+    const diffTime = checkOut.getTime() - checkIn.getTime()
+    const numberOfNights = Math.max(
+      Math.ceil(diffTime / (1000 * 60 * 60 * 24)),
+      1
+    )
+
+    // 4️⃣ Calculate total amount
+    const amountInKobo = booking.suite.price * numberOfNights * 100
+
 
     // 4️⃣ Initialize Paystack
     const paystackPayload = {

@@ -11,9 +11,9 @@ export default function Footer() {
         <div>
           <h2 className="text-2xl font-bold text-white mb-4">Comfort Resort & Suites</h2>
           <p>Affordable Luxury in a place of comfort</p>
-          <p className="mt-2">Plot 4 & 5 Francis Elusogbon Avenue, Onda Akoja Family Layout, Aba Iya Gani, Dangote Bus Stop, off Ilesa Road, Ile-Ife</p>
+          <p className="mt-2">BLOCK 11, Plot 4 & 5 Francis Elusogbon Avenue, Onda Akoja Family Layout, Aba Iya Gani, Dangote Bus Stop, off Ilesa Road, Ile-Ife 220101, Osun</p>
           <p className="mt-1">Email: comfortrs@outlook.com</p>
-          <p>Phone: +234 803 303 9194</p>
+          <p>Phone: +234 809 803 9194</p>
         </div>
 
         {/* Quick Links */}

@@ -1,12 +1,11 @@
 "use client"
 
-import { useState } from "react"
-import { prisma } from "@/lib/prisma"
+import { useState, useEffect } from "react"
 import SuiteCard from "@/components/booking/SuiteCard"
 import { FaGamepad, FaCocktail, FaConciergeBell, FaTv, FaWifi, FaVolumeMute, FaStar } from "react-icons/fa"
 import { Badge } from "lucide-react"
 
-// Dummy carousel images/videos
+// Dummy hero slides (replace with real images/videos)
 const heroSlides = [
   { type: "image", src: "/images/auth-hotel.jpg" },
   { type: "image", src: "/rooms/regular/regular-2.jpg" },
@@ -15,22 +14,27 @@ const heroSlides = [
   { type: "image", src: "/rooms/vip/VIP-3.jpg" },
   { type: "image", src: "/rooms/vip/VIP-4.jpg" },
   { type: "image", src: "/rooms/vip/VIP-5.jpg" },
-  { type: "video", src: "/videos/hero.mp4" },
+  // { type: "video", src: "/videos/hero.mp4" },
 ]
 
 export default function GalleryUI({ suites }: { suites: any[] }) {
-
-
   return (
     <main className="bg-black text-white min-h-screen">
       {/* Hero Carousel */}
       <div className="relative h-96 w-full overflow-hidden mb-12">
+        {/* Slides */}
         <Carousel slides={heroSlides} />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center bg-black/50">
-          <h1 className="text-4xl md:text-6xl font-serif font-bold text-[#D55605] mb-4">Experience Luxury & Comfort</h1>
-          <p className="text-white text-lg md:text-xl">Discover suites & amenities designed for your ultimate stay</p>
+
+        {/* Overlay text always on top */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center bg-black/30 z-20 pointer-events-none">
+            <h1 className="text-4xl md:text-6xl font-serif font-bold text-[#D55605] mb-4">
+            Experience Luxury & Comfort
+            </h1>
+            <p className="text-white text-lg md:text-xl">
+            Discover suites & amenities designed for your ultimate stay
+            </p>
         </div>
-      </div>
+    </div>
 
       {/* Suites */}
       <section className="max-w-7xl mx-auto px-4 mb-16">
@@ -88,9 +92,19 @@ export default function GalleryUI({ suites }: { suites: any[] }) {
   )
 }
 
-// Simple Carousel Component
+// ----------------------
+// Carousel Component
+// ----------------------
 function Carousel({ slides }: { slides: { type: string; src: string }[] }) {
   const [current, setCurrent] = useState(0)
+
+  // Auto-slide every 5s
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrent(prev => (prev + 1) % slides.length)
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [slides.length])
 
   const nextSlide = () => setCurrent((current + 1) % slides.length)
   const prevSlide = () => setCurrent((current - 1 + slides.length) % slides.length)
@@ -100,7 +114,11 @@ function Carousel({ slides }: { slides: { type: string; src: string }[] }) {
       {slides.map((slide, idx) => (
         <div
           key={idx}
-          className={`absolute inset-0 transition-opacity duration-700 ${idx === current ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 transition-all duration-1000 ${
+            idx === current
+              ? "opacity-100 scale-100 z-10"
+              : "opacity-0 scale-95 z-0"
+          }`}
         >
           {slide.type === "image" ? (
             <img src={slide.src} className="w-full h-full object-cover" alt={`slide-${idx}`} />
@@ -109,8 +127,33 @@ function Carousel({ slides }: { slides: { type: string; src: string }[] }) {
           )}
         </div>
       ))}
-      <button onClick={prevSlide} className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full">◀</button>
-      <button onClick={nextSlide} className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full">▶</button>
+
+      {/* Navigation Buttons */}
+      <button
+        onClick={prevSlide}
+        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-[#75240E]/70 transition-colors"
+      >
+        ◀
+      </button>
+      <button
+        onClick={nextSlide}
+        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-[#75240E]/70 transition-colors"
+      >
+        ▶
+      </button>
+
+      {/* Dots */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+        {slides.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setCurrent(idx)}
+            className={`w-3 h-3 rounded-full transition-colors ${
+              idx === current ? "bg-[#D55605]" : "bg-gray-500"
+            }`}
+          />
+        ))}
+      </div>
     </div>
   )
 }
