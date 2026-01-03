@@ -62,7 +62,7 @@ async function main() {
   const suitesData = [
     {
       name: "VIP Chalet",
-      status: "ACTIVE",
+      status: "AVAILABLE",
       description: `About this property
   Comfortable Accommodations: Comfort Resort & Suites offers premium VIP chalets designed for relaxation, privacy, and entertainment. Each chalet features air-conditioning, sound-proof rooms, private ensuite bathrooms, spacious seating areas, Smart TVs, and fast internet connectivity for work or leisure.
 
@@ -104,7 +104,7 @@ async function main() {
     },
     {
       name: "Regular Chalet",
-      status: "ACTIVE",
+      status: "AVAILABLE",
       description: `About this property
   Comfortable Accommodations: Comfort Resort & Suites offers well-designed Regular Chalets that combine comfort and functionality. Each chalet includes air-conditioning, sound-proof rooms, private bathrooms, Smart TVs, and reliable internet access.
 

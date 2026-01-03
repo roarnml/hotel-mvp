@@ -50,6 +50,8 @@ export default function GalleryUI({ suites }: { suites: any[] }) {
                 name={suite.name}
                 price={suite.price}
                 images={suite.images || []}
+                capacity={suite.capacity}
+                availableRooms={suite.availableRooms}
               />
             ))}
           </div>

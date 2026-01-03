@@ -42,12 +42,18 @@ export default function SuiteBookingForm({ suite }: SuiteBookingFormProps) {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, type, value, checked } = e.target
-    setForm({
-      ...form,
-      [name]: type === "checkbox" ? checked : value,
-    })
-  }
+    const { name, type } = e.target;
+    let value: string | boolean;
+
+    if (type === "checkbox") {
+      value = (e.target as HTMLInputElement).checked;
+    } else {
+      value = e.target.value;
+    }
+
+    setForm({ ...form, [name]: value });
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

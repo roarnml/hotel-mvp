@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { SuiteStatus } from "@prisma/client"
 import { FiPlus, FiEdit, FiDollarSign } from "react-icons/fi"
 
 function SuiteCard({
@@ -11,7 +12,7 @@ function SuiteCard({
   id: string
   name: string
   price: number
-  status: "AVAILABLE" | "OCCUPIED" | "MAINTENANCE"
+  status: SuiteStatus
   features: string[]
 }) {
   const statusStyle =
@@ -66,8 +67,8 @@ export default async function AdminSuitesPage() {
   })
 
   const total = suites.length
-  const available = suites.filter(s => s.status === "AVAILABLE").length
-  const occupied = suites.filter(s => s.status === "OCCUPIED").length
+  const available = suites.filter(s => s.status === "ACTIVE").length
+  const occupied = suites.filter(s => s.status === "INACTIVE").length
 
   function Metric({ label, value }: { label: string; value: number }) {
     return (

@@ -61,7 +61,7 @@ model Suite {
   availableRooms Int         @default(0)
 
   // Operational control (maintenance, shutdowns, etc.)
-  status         SuiteStatus @default(ACTIVE)
+  status         SuiteStatus @default(AVAILABLE)
 
   // Assigned only when guest checks in
   roomNumber     String      @default("UNASSIGNED")
@@ -81,6 +81,9 @@ enum SuiteStatus {
   ACTIVE        // Sellable
   MAINTENANCE  // Temporarily blocked
   INACTIVE     // Permanently disabled
+  AVAILABLE   // new
+  OCCUPIED    // new
+  SOON            // coming soon / not open yet
 }
 
 

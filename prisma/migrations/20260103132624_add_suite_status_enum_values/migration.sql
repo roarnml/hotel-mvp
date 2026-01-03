@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Suite" ALTER COLUMN "status" SET DEFAULT 'AVAILABLE';
