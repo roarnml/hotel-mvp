@@ -1,5 +1,6 @@
+// dashboardMetrics.ts
 import { prisma } from "@/lib/prisma"
-import type { BookingStatus, SuiteStatus } from "@prisma/client"
+import { BookingStatus, SuiteStatus } from "@prisma/client"
 
 export type DashboardMetrics = {
   arrivalsToday: number
@@ -20,12 +21,13 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const todayEnd = new Date()
   todayEnd.setHours(23, 59, 59, 999)
 
+  // 1️⃣ Fetch bookings and suites in parallel
   const [
     arrivalsToday,
     departuresToday,
     occupiedRooms,
-    availableRooms,
     maintenanceRooms,
+    activeSuites,
     vipArrivalsToday,
   ] = await Promise.all([
     // Bookings checking in today (CONFIRMED or CHECKED_IN)
@@ -44,19 +46,23 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       },
     }),
 
-    // Rooms currently occupied
-    prisma.suite.count({
-      where: { status: "OCCUPIED" as SuiteStatus },
+    // Rooms currently occupied (suite has a CHECKED_IN booking)
+    prisma.booking.count({
+      where: {
+        status: "CHECKED_IN",
+        suite: { status: SuiteStatus.ACTIVE },
+      },
     }),
 
-    // Rooms currently available
+    // Suites under maintenance
     prisma.suite.count({
-      where: { status: "AVAILABLE" as SuiteStatus },
+      where: { status: SuiteStatus.MAINTENANCE },
     }),
 
-    // Rooms under maintenance (pending cleaning)
-    prisma.suite.count({
-      where: { status: "MAINTENANCE" as SuiteStatus },
+    // Active suites with availableRooms summed
+    prisma.suite.findMany({
+      where: { status: SuiteStatus.ACTIVE },
+      select: { availableRooms: true },
     }),
 
     // VIP arrivals today
@@ -68,6 +74,12 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       },
     }),
   ])
+
+  // 2️⃣ Sum the availableRooms across all active suites
+  const availableRooms = activeSuites.reduce(
+    (total, suite) => total + (suite.availableRooms ?? 0),
+    0
+  )
 
   return {
     arrivalsToday,

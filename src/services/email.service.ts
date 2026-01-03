@@ -144,7 +144,6 @@ export async function sendTicketEmail({
   });
 }
 */
-
 // src/services/email.service.ts
 import nodemailer from "nodemailer"
 import path from "path"
@@ -164,7 +163,7 @@ interface SendTicketEmailOptions {
 
   amountPaid: string
 
-  suiteName: string // <-- now we just pass the ID
+  suiteId: string // now we pass suiteId
 
   pdfUrl: string // e.g. "/tickets/TKT-123.pdf"
 }
@@ -178,22 +177,24 @@ export async function sendTicketEmail({
   checkOut,
   nights,
   amountPaid,
-  suiteName,
+  suiteId,
   pdfUrl,
 }: SendTicketEmailOptions) {
-  // 🔹 Fetch suite details from DB
+  // 🔹 Fetch suite details from DB using ID
   const suite = await prisma.suite.findUnique({
-    where: { name: suiteName },
+    where: { id: suiteId },
   })
 
   if (!suite) {
-    throw new Error(`Suite not found for name ${suiteName}`)
+    throw new Error(`Suite not found for ID ${suiteId}`)
   }
 
+  // Prepare feature list
   const featureList = suite.features?.length
     ? suite.features.map(f => `• ${f}`).join("<br />")
     : "• Premium comfort guaranteed"
 
+  // Nodemailer transport
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT),
@@ -203,9 +204,8 @@ export async function sendTicketEmail({
     },
   })
 
-  // 📎 Resolve PDF attachment
+  // Resolve PDF attachment
   const pdfPath = path.join(process.cwd(), "public", pdfUrl)
-
   if (!fs.existsSync(pdfPath)) {
     throw new Error(`Ticket PDF not found at ${pdfPath}`)
   }
@@ -262,11 +262,11 @@ export async function sendTicketEmail({
                   </tr>
                   <tr>
                     <td>Room Number</td>
-                    <td align="right"><strong>${suite.roomNumber}</strong></td>
+                    <td align="right"><strong>${suite.roomNumber ?? "TBA"}</strong></td>
                   </tr>
                   <tr>
                     <td>Capacity</td>
-                    <td align="right">${suite.capacity} Guest(s)</td>
+                    <td align="right">${suite.capacity ?? "N/A"} Guest(s)</td>
                   </tr>
                   <tr>
                     <td>Check-in</td>
@@ -319,4 +319,5 @@ export async function sendTicketEmail({
 </html>
     `,
   })
+  console.log(`Ticket email sent to ${to} for booking ${bookingRef}`)
 }

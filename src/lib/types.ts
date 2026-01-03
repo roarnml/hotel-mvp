@@ -1,6 +1,6 @@
 // @/lib/types.ts
 
-export type SuiteStatus = "AVAILABLE" | "OCCUPIED" | "MAINTENANCE"
+export type SuiteStatus = "ACTIVE" | "MAINTENANCE" | "INACTIVE"
 
 export interface Suite {
   id: string

@@ -39,6 +39,7 @@ export default function BookingSuccessPage() {
   useEffect(() => {
     if (!reference) return
 
+    console.log("Starting payment verification for reference:", reference)
     const interval = setInterval(async () => {
       try {
         const res = await fetch(

@@ -62,9 +62,29 @@ async function main() {
   const suitesData = [
     {
       name: "VIP Chalet",
-      description: "Luxury VIP chalet with 2 ensuite bedrooms and fully equipped living space",
+      status: "ACTIVE",
+      description: `About this property
+  Comfortable Accommodations: Comfort Resort & Suites offers premium VIP chalets designed for relaxation, privacy, and entertainment. Each chalet features air-conditioning, sound-proof rooms, private ensuite bathrooms, spacious seating areas, Smart TVs, and fast internet connectivity for work or leisure.
+
+  Entertainment & Leisure: Guests enjoy exclusive access to an on-site gaming zone, a relaxing bar area, and premium in-room entertainment. The VIP Chalet is ideal for families, couples, and executives seeking comfort with a touch of luxury.
+
+  Dining Experience: Room service is available, alongside a well-stocked bar offering a selection of drinks in a calm and stylish environment.
+
+  Convenient Facilities: The resort provides 24-hour front desk service, concierge support, daily housekeeping, and free on-site private parking.
+
+  Prime Location: Comfort Resort & Suites is strategically located in a serene environment, offering easy access to nearby attractions while maintaining a peaceful, private atmosphere.
+
+  Most popular facilities
+  Free Internet
+  Sound-proof rooms
+  Gaming Zone
+  Bar
+  Room Service
+  Smart TV
+  Free Parking`,
       price: 60000,
       capacity: 4,
+      availableRooms: 2,
       images: [
         "/rooms/vip/PHOTO-2025-05-03-18-50-32.jpg",
         "/rooms/vip/PHOTO-2025-06-07-21-00-14.jpg",
@@ -72,20 +92,39 @@ async function main() {
       ],
       features: [
         "2 Ensuite Bedrooms",
+        "Sound-proof Rooms",
         "Living Room",
         "Smart TV",
-        "Kitchen",
-        "Microwave Oven",
-        "Mini Fridge",
-        "Cooking Utensils",
+        "Gaming Zone Access",
+        "Bar Access",
+        "High-Speed Internet",
+        "Room Service",
       ],
       video: "/rooms/vip/VIP.mp4",
     },
-    ...Array.from({ length: 6 }).map((_, i) => ({
-      name: `Regular Chalet ${i + 1}`,
-      description: "Comfortable 2-bedroom ensuite chalet ideal for regular guests",
+    {
+      name: "Regular Chalet",
+      status: "ACTIVE",
+      description: `About this property
+  Comfortable Accommodations: Comfort Resort & Suites offers well-designed Regular Chalets that combine comfort and functionality. Each chalet includes air-conditioning, sound-proof rooms, private bathrooms, Smart TVs, and reliable internet access.
+
+  Entertainment & Leisure: Guests have access to the resort’s gaming zone and bar, providing a relaxed and enjoyable stay for individuals, couples, and small families.
+
+  Dining Experience: Room service is available for guests who prefer dining in a comfortable, private setting.
+
+  Convenient Facilities: The resort features 24-hour front desk support, housekeeping services, and free on-site parking for all guests.
+
+  Most popular facilities
+  Free Internet
+  Sound-proof rooms
+  Gaming Zone
+  Bar
+  Room Service
+  Smart TV
+  Free Parking`,
       price: 50000,
       capacity: 2,
+      availableRooms: 6,
       images: [
         "/rooms/regular/IMG_2659.jpg",
         "/rooms/regular/IMG_2687.jpg",
@@ -95,15 +134,16 @@ async function main() {
       ],
       features: [
         "2 Ensuite Bedrooms",
+        "Sound-proof Rooms",
         "Living Room",
-        "Comfortable Sofa",
         "Smart TV",
-        "Kitchen",
-        "Microwave Oven",
-        "Mini Fridge",
+        "Gaming Zone Access",
+        "High-Speed Internet",
+        "Room Service",
       ],
-    })),
+    },
   ]
+
 
   const suites = []
   for (const s of suitesData) {

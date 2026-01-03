@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, useEffect } from "react"
+import { calculateNights } from "@/lib/date"
 
 interface SuiteBookingFormProps {
   suite: {
@@ -20,6 +21,7 @@ export default function SuiteBookingForm({ suite }: SuiteBookingFormProps) {
     address: "",
     checkIn: "",
     checkOut: "",
+    acceptedTerms: false, // <-- new field
   })
 
   const [loading, setLoading] = useState(false)
@@ -30,18 +32,21 @@ export default function SuiteBookingForm({ suite }: SuiteBookingFormProps) {
   // Calculate total price based on number of nights
   useEffect(() => {
     if (form.checkIn && form.checkOut) {
-      const checkInDate = new Date(form.checkIn)
-      const checkOutDate = new Date(form.checkOut)
-      const diffTime = checkOutDate.getTime() - checkInDate.getTime()
-      const diffDays = Math.max(Math.ceil(diffTime / (1000 * 60 * 60 * 24)), 1)
+      const diffDays = calculateNights(form.checkIn, form.checkOut)
       setTotalPrice(diffDays * suite.price)
     } else {
       setTotalPrice(suite.price)
     }
   }, [form.checkIn, form.checkOut, suite.price])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, type, value, checked } = e.target
+    setForm({
+      ...form,
+      [name]: type === "checkbox" ? checked : value,
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,9 +54,14 @@ export default function SuiteBookingForm({ suite }: SuiteBookingFormProps) {
     setError(null)
     setSuccess(null)
 
-    const { name, email, checkIn, checkOut } = form
+    const { name, email, checkIn, checkOut, acceptedTerms } = form
     if (!name || !email || !checkIn || !checkOut) {
       setError("Please fill all required fields.")
+      return
+    }
+
+    if (!acceptedTerms) {
+      setError("You must accept the privacy policy and terms before booking.")
       return
     }
 
@@ -73,7 +83,6 @@ export default function SuiteBookingForm({ suite }: SuiteBookingFormProps) {
         }),
       })
 
-
       const data = await res.json()
       if (!res.ok) {
         setError(data.error || "Booking failed")
@@ -86,6 +95,9 @@ export default function SuiteBookingForm({ suite }: SuiteBookingFormProps) {
       }
 
       setSuccess("Redirecting to Paystack…")
+      console.log("Redirecting to Paystack with URL:", data.authorizationUrl)
+      console.log("Payment reference:", data.reference)
+      // Redirect to Paystack payment page
       window.location.href = data.authorizationUrl
     } catch (err) {
       console.error(err)
@@ -161,6 +173,27 @@ export default function SuiteBookingForm({ suite }: SuiteBookingFormProps) {
           required
         />
       </div>
+
+      {/* -------------------- TERMS & PRIVACY -------------------- */}
+      <label className="flex items-start gap-3 mt-2 text-white text-sm">
+        <input
+          type="checkbox"
+          name="acceptedTerms"
+          checked={form.acceptedTerms}
+          onChange={handleChange}
+          className="mt-1 accent-[#D55605] w-4 h-4"
+          required
+        />
+        I have read and agree to the{" "}
+        <a href="/privacy" className="underline text-[#D55605]" target="_blank">
+          Privacy Policy
+        </a>{" "}
+        and{" "}
+        <a href="/terms" className="underline text-[#D55605]" target="_blank">
+          Terms & Conditions
+        </a>
+        .
+      </label>
 
       <button
         type="submit"

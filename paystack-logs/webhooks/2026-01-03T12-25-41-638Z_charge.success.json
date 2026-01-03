@@ -1,0 +1,73 @@
+{
+  "receivedAt": "2026-01-03T12:25:41.638Z",
+  "event": "charge.success",
+  "signatureValid": true,
+  "payload": {
+    "event": "charge.success",
+    "data": {
+      "id": 5699892659,
+      "domain": "test",
+      "status": "success",
+      "reference": "7umiza0aql",
+      "amount": 5000000,
+      "message": null,
+      "gateway_response": "Successful",
+      "paid_at": "2026-01-03T16:17:55.000Z",
+      "created_at": "2026-01-03T16:17:24.000Z",
+      "channel": "card",
+      "currency": "NGN",
+      "ip_address": "105.112.188.223",
+      "metadata": {
+        "bookingId": "cmjy9zle6000hucco5j0bay5f",
+        "bookingRef": "BOOK-1767443101700-545",
+        "guestId": "cmjxtf0mu0004ucjccqvzvkyq",
+        "referrer": "http://localhost:3000/"
+      },
+      "fees_breakdown": null,
+      "log": null,
+      "fees": 85000,
+      "fees_split": null,
+      "authorization": {
+        "authorization_code": "AUTH_lmwv9rw6tb",
+        "bin": "408408",
+        "last4": "4081",
+        "exp_month": "12",
+        "exp_year": "2030",
+        "channel": "card",
+        "card_type": "visa ",
+        "bank": "TEST BANK",
+        "country_code": "NG",
+        "brand": "visa",
+        "reusable": true,
+        "signature": "SIG_jpZ4P1RJt0V9YfZoIbqt",
+        "account_name": null,
+        "receiver_bank_account_number": null,
+        "receiver_bank": null
+      },
+      "customer": {
+        "id": 327419195,
+        "first_name": null,
+        "last_name": null,
+        "email": "danakinyemie@gmail.com",
+        "customer_code": "CUS_0rbypmsnk2vxwlf",
+        "phone": null,
+        "metadata": null,
+        "risk_action": "default",
+        "international_format_phone": null
+      },
+      "plan": {},
+      "subaccount": {},
+      "split": {},
+      "order_id": null,
+      "paidAt": "2026-01-03T16:17:55.000Z",
+      "requested_amount": 5000000,
+      "pos_transaction_data": null,
+      "source": {
+        "type": "api",
+        "source": "merchant_api",
+        "entry_point": "transaction_initialize",
+        "identifier": null
+      }
+    }
+  }
+}

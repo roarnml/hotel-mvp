@@ -47,8 +47,7 @@ export async function GET(req: Request, context: any) {
     );
   }
 }
-*/
-import { NextResponse } from "next/server";
+*/import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
@@ -67,16 +66,13 @@ export async function GET(
   }
 
   try {
+    // Fetch full suite object with all fields
     const suite = await prisma.suite.findUnique({
       where: { id: suiteId },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        price: true,
-        images: true,
-        capacity: true,
-        isActive: true,
+      include: {
+        bookings: true,        // optional: include relations if needed
+        housekeeping: true,
+        seasonalRates: true,
       },
     });
 

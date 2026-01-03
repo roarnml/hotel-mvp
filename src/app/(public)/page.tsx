@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import SuiteCard from "@/components/booking/SuiteCard"
 import { motion } from "framer-motion"
+import { SuiteStatus } from "@/lib/types"
 
 interface Suite {
   id: string
@@ -11,6 +12,8 @@ interface Suite {
   price: number
   images: string[]
   capacity: number
+  availableRooms: number
+  status: SuiteStatus
 }
 
 export default function Home() {
@@ -119,7 +122,7 @@ export default function Home() {
           </p>
         </header>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {suites.length === 0 ? (
             <p className="col-span-full text-center text-muted-foreground">
               No suites available at the moment.
@@ -134,11 +137,13 @@ export default function Home() {
                 price={suite.price}
                 images={suite.images}
                 capacity={suite.capacity}
+                availableRooms={suite.availableRooms}
               />
             ))
           )}
         </div>
       </section>
+
     </main>
   )
 }

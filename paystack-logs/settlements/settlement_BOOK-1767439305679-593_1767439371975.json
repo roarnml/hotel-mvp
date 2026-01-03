@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2026-01-03T11:22:51.975Z",
+  "record": {
+    "booking": {
+      "id": "cmjy7q8d1000auccopsfbusoa",
+      "bookingRef": "BOOK-1767439305679-593",
+      "suiteId": "cmjxqhd4c000bucz05wp4c1es",
+      "guestId": "cmjxtf0mu0004ucjccqvzvkyq",
+      "userId": null,
+      "name": "Irorunoluwa Akinyemi",
+      "email": "danakinyemie@gmail.com",
+      "checkIn": "2026-01-23T00:00:00.000Z",
+      "checkOut": "2026-01-25T00:00:00.000Z",
+      "amountPaid": 10000000,
+      "status": "CONFIRMED",
+      "paymentStatus": "SUCCESS",
+      "ticketNumber": null,
+      "checkInNumber": null,
+      "ticketPdfUrl": null,
+      "ticketIssuedAt": null,
+      "emailSentAt": null,
+      "createdAt": "2026-01-03T11:21:45.685Z",
+      "updatedAt": "2026-01-03T11:22:50.663Z"
+    },
+    "payment": {
+      "id": "cmjy7qdjf000cuccoaiyt4xn2",
+      "bookingId": "cmjy7q8d1000auccopsfbusoa",
+      "amount": 10000000,
+      "currency": "NGN",
+      "status": "SUCCESS",
+      "provider": "PAYSTACK",
+      "paystackReference": "9ca1ul87ru",
+      "transactionId": "5699750638",
+      "receiptUrl": null,
+      "webhookEventId": "charge.success_5699750638",
+      "paidAt": "2026-01-03T15:15:03.000Z",
+      "createdAt": "2026-01-03T11:21:52.395Z",
+      "updatedAt": "2026-01-03T11:22:50.262Z"
+    },
+    "paystack": {
+      "gatewayResponse": "Successful",
+      "fees": 160000,
+      "authorization": {
+        "authorization_code": "AUTH_d7p3vtrnfn",
+        "bin": "408408",
+        "last4": "4081",
+        "exp_month": "12",
+        "exp_year": "2030",
+        "channel": "card",
+        "card_type": "visa ",
+        "bank": "TEST BANK",
+        "country_code": "NG",
+        "brand": "visa",
+        "reusable": true,
+        "signature": "SIG_jpZ4P1RJt0V9YfZoIbqt",
+        "account_name": null,
+        "receiver_bank_account_number": null,
+        "receiver_bank": null
+      },
+      "customer": {
+        "id": 327419195,
+        "first_name": null,
+        "last_name": null,
+        "email": "danakinyemie@gmail.com",
+        "customer_code": "CUS_0rbypmsnk2vxwlf",
+        "phone": null,
+        "metadata": null,
+        "risk_action": "default",
+        "international_format_phone": null
+      },
+      "channel": "card",
+      "paidAt": "2026-01-03T15:15:03.000Z"
+    }
+  }
+}

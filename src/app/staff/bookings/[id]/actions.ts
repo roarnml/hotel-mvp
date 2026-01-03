@@ -78,19 +78,37 @@ export async function checkInGuest(
 }
 
 /**
- * Check-out a booking.
+ * Check-out a booking and release room availability.
  */
 export async function checkOutGuest(bookingId: string) {
-  const booking = await prisma.booking.findUnique({ where: { id: bookingId } })
-  if (!booking) throw new Error("Booking not found")
-  if (booking.status !== "CHECKED_IN") throw new Error("Cannot check-out a guest who is not checked in")
+  await prisma.$transaction(async (tx) => {
+    const booking = await tx.booking.findUnique({
+      where: { id: bookingId },
+    })
 
-  await prisma.booking.update({
-    where: { id: bookingId },
-    data: {
-      status: "CHECKED_OUT",
-      checkOut: new Date(),
-    },
+    if (!booking) throw new Error("Booking not found")
+    if (booking.status !== "CHECKED_IN") {
+      throw new Error("Cannot check-out a guest who is not checked in")
+    }
+
+    // 1️⃣ Mark booking as checked out
+    await tx.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: "CHECKED_OUT",
+        checkOut: new Date(),
+      },
+    })
+
+    // 2️⃣ Increment available rooms for the suite category
+    await tx.suite.update({
+      where: { id: booking.suiteId },
+      data: {
+        availableRooms: {
+          increment: 1,
+        },
+      },
+    })
   })
 
   revalidatePath("/staff/bookings")

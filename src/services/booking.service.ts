@@ -1,6 +1,5 @@
-// src/services/booking.service.ts
-import { prisma } from "@/lib/prisma";
-import { generateBookingRef } from "@/utils/generateBookingRef";
+import { prisma } from "@/lib/prisma"
+import { generateBookingRef } from "@/utils/generateBookingRef"
 
 export async function createBooking({
   suiteId,
@@ -11,34 +10,55 @@ export async function createBooking({
   checkOut,
   userId,
 }: {
-  suiteId: string;
-  guestId: string;
-  name: string;
-  email: string;
-  checkIn: Date;
-  checkOut: Date;
-  userId?: string;
+  suiteId: string
+  guestId: string
+  name: string
+  email: string
+  checkIn: Date
+  checkOut: Date
+  userId?: string
 }) {
-  const bookingRef = generateBookingRef();
-  const booking = await prisma.booking.create({
-    data: {
-      suiteId,
-      guestId,
-      name,
-      email,
-      checkIn,
-      checkOut,
-      userId,
-      bookingRef,
-      status: "PENDING",
-      paymentStatus: "PENDING",
-    },
-    include: { suite: true }, // <-- this gives you booking.suite
-  });
-  return booking;
+  return prisma.$transaction(async (tx) => {
+    // 1️⃣ Atomically decrement availableRooms
+    const updatedSuites = await tx.suite.updateMany({
+      where: {
+        id: suiteId,
+        status: "ACTIVE",
+        availableRooms: { gt: 0 },
+      },
+      data: {
+        availableRooms: { decrement: 1 },
+      },
+    })
+
+    if (updatedSuites.count === 0) {
+      throw new Error("No rooms available for this suite")
+    }
+
+    // 2️⃣ Create booking
+    const booking = await tx.booking.create({
+      data: {
+        suiteId,
+        guestId,
+        name,
+        email,
+        checkIn,
+        checkOut,
+        userId,
+        bookingRef: generateBookingRef(),
+        status: "PENDING",
+        paymentStatus: "PENDING",
+      },
+      include: {
+        suite: true, // include price & suite info
+      },
+    })
+
+    return booking
+  })
 }
 
-// NEW: fetch booking by bookingRef or ticketNumber
+// Fetch booking by bookingRef or ticketNumber
 export async function getBookingByRef(ref: string) {
   return prisma.booking.findFirst({
     where: {
@@ -47,8 +67,6 @@ export async function getBookingByRef(ref: string) {
         { ticketNumber: ref },
       ],
     },
-    include: {
-      suite: true,   // include suite info
-    },
-  });
+    include: { suite: true },
+  })
 }
