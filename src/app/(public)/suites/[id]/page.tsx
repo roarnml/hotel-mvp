@@ -83,7 +83,7 @@ export default async function SuiteDetailPage(props: any) {
             <span className="font-semibold">Capacity:</span> {suite.capacity ?? "N/A"} guests
           </p>
           <p>
-            <span className="font-semibold">Price:</span> ₦{suite.price !== undefined ? suite.price.toLocaleString() : "N/A"} / night
+            <span className="font-semibold">Price:</span> ₦{(suite.price / 100) !== undefined ? (suite.price / 100).toLocaleString() : "N/A"} / night
           </p>
           <p>
             <span className="font-semibold">Availability:</span>{" "}
