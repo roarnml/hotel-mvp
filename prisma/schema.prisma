@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//////////////////////
+// USERS (STAFF)
+//////////////////////
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(STAFF)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Only bookings the staff created (if allowed)
+  bookings Booking[]
+
+  // Optional flags for privileges (fine-grained)
+  canCreateBooking       Boolean @default(false)
+  canCheckIn             Boolean @default(false)
+  canCheckOut            Boolean @default(false)
+  canAssignChalet        Boolean @default(false)
+  canEditRoomMaintenance Boolean @default(false)  // false for check-in staff
+  canEditProfile         Boolean @default(true)   // name/email/number restricted
+
+  preferences UserPreferences? // LINKED HERE
+  
+  @@index([role])
+}
+
+model UserPreferences {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  showTodayOnlyBookings Boolean @default(true)
+  autoFocusRoomInput    Boolean @default(true)
+  confirmBeforeCheckout Boolean @default(true)
+  notifyCheckInSuccess  Boolean @default(true)
+  notifyVIPGuest        Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+//////////////////////
+// GUESTS (CUSTOMERS)
+//////////////////////
+
+model Guest {
+  id        String   @id @default(cuid()) // Guest unique identifier
+  name      String // Guest full name
+  email     String   @unique // Guest email (ticket delivery)
+  phone     String? // Optional phone number
+  address   String? // Optional address
+  isVIP     Boolean  @default(false) // VIP tagging
+  createdAt DateTime @default(now()) // First appearance timestamp
+  updatedAt DateTime @updatedAt // Profile updates
+
+  bookings Booking[] // All bookings made by guest
+}
+
+model Suite {
+  id             String      @id @default(cuid())
+  name           String      @unique        // Category name: VIP / Regular Deluxe
+  category       SuiteCategory                 // Enum for VIP/REGULAR
+  description    String
+  price          Int
+  images         String[]                       // URLs or file paths
+  video          String?
+  capacity       Int                             // Guests per suite
+  features       String[]
+
+  availableRooms Int         @default(0)       // Only decremented when booking confirmed & ticket sent
+  status         SuiteStatus @default(AVAILABLE)
+  isActive       Boolean     @default(true)
+
+  // Operational
+  bookings        Booking[]
+  seasonalRates   SeasonalRate[]
+  roomAssignments RoomAssignment[]
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+// Suite category for clarity
+enum SuiteCategory {
+  VIP
+  REGULAR
+}
+
+enum SuiteStatus {
+  ACTIVE        // Sellable
+  MAINTENANCE   // Temporarily blocked
+  INACTIVE      // Permanently disabled
+  AVAILABLE
+  OCCUPIED
+  SOON          // Coming soon
+}
+
+model Booking {
+  id            String  @id @default(cuid())
+  bookingRef    String  @unique
+  suiteId       String
+  guestId       String?
+  userId        String? // Staff who created booking
+
+  name          String
+  email         String
+
+  checkIn       DateTime
+  checkOut      DateTime
+
+  amountPaid    Int?
+
+  status        BookingStatus @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING)
+
+  ticketNumber   String? @unique
+  checkInNumber  String? @unique
+  ticketPdfUrl   String?
+  ticketIssuedAt DateTime?
+  emailSentAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  suite   Suite   @relation(fields: [suiteId], references: [id])
+  guest   Guest?  @relation(fields: [guestId], references: [id])
+  user    User?   @relation(fields: [userId], references: [id])
+  payment Payment?
+  roomAssignment RoomAssignment?
+
+  @@index([suiteId, checkIn, checkOut])
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELLED
+}
+
+/////////////////////////
+// ROOM ASSIGNMENT
+/////////////////////////
+
+// Tracks actual room numbers assigned to guests at check-in
+model RoomAssignment {
+  id         String   @id @default(cuid())
+  bookingId  String   @unique
+  suiteId    String
+  roomNumber String   // Assigned room number
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+  suite   Suite   @relation(fields: [suiteId], references: [id])
+
+  @@index([suiteId, roomNumber]) // Avoid duplicate room assignment
+}
+
+model Payment {
+  id        String @id @default(cuid())
+
+  bookingId String @unique
+  booking   Booking @relation(fields: [bookingId], references: [id])
+
+  reference String @unique // Paystack ref
+  provider  PaymentProvider
+
+  amount       Int      // Expected amount (kobo)
+  amountPaid  Int?     // Actual amount paid (kobo)
+  currency    String   @default("NGN")
+
+  status     PaymentStatus @default(PENDING)
+
+  transactionId  String? @unique
+  receiptUrl     String?
+  webhookEventId String? @unique
+
+  rawResponse Json?
+
+  initiatedAt DateTime? // when payment was initialized with provider
+  paidAt   DateTime?
+  failedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentProvider {
+  PAYSTACK
+  STRIPE
+  FLUTTERWAVE
+  CASH
+}
+
+//////////////////////
+// PRICING
+//////////////////////
+
+model SeasonalRate {
+  id      String   @id @default(cuid()) // Rate ID
+  suiteId String // Target suite
+  start   DateTime // Rate start
+  end     DateTime // Rate end
+  price   Int // Price override (kobo)
+  label   String? // e.g. "Christmas"
+
+  suite     Suite    @relation(fields: [suiteId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+//////////////////////
+// ENUMS
+//////////////////////
+
+enum Role {
+  OWNER
+  MANAGER
+  CHECKIN_STAFF
+  STAFF   // fallback/general staff
+}

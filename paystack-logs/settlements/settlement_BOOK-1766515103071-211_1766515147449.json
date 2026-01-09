@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2025-12-23T18:39:07.449Z",
+  "record": {
+    "booking": {
+      "id": "cmjixhd2h0002ucd0v32zmb6g",
+      "bookingRef": "BOOK-1766515103071-211",
+      "suiteId": "cmjgcm2eh000fuch44z15auzb",
+      "guestId": "cmjixhc720000ucd0bgc4unm6",
+      "userId": null,
+      "name": "Mary Jane",
+      "email": "sophie82100@gmail.com",
+      "checkIn": "2026-03-24T00:00:00.000Z",
+      "checkOut": "2026-03-25T00:00:00.000Z",
+      "amountPaid": 35000000,
+      "status": "CONFIRMED",
+      "paymentStatus": "SUCCESS",
+      "ticketNumber": null,
+      "checkInNumber": null,
+      "ticketPdfUrl": null,
+      "ticketIssuedAt": null,
+      "emailSentAt": null,
+      "createdAt": "2025-12-23T18:38:23.080Z",
+      "updatedAt": "2025-12-23T18:39:05.304Z"
+    },
+    "payment": {
+      "id": "cmjixhguo0004ucd05sw9txa6",
+      "bookingId": "cmjixhd2h0002ucd0v32zmb6g",
+      "amount": 35000000,
+      "currency": "NGN",
+      "status": "SUCCESS",
+      "provider": "PAYSTACK",
+      "paystackReference": "4hbdwxdv3g",
+      "transactionId": "5665871877",
+      "receiptUrl": null,
+      "webhookEventId": "charge.success_5665871877",
+      "paidAt": "2025-12-23T18:39:04.000Z",
+      "createdAt": "2025-12-23T18:38:27.983Z",
+      "updatedAt": "2025-12-23T18:39:04.847Z"
+    },
+    "paystack": {
+      "gatewayResponse": "Successful",
+      "fees": 200000,
+      "authorization": {
+        "authorization_code": "AUTH_f68srvkj8n",
+        "bin": "408408",
+        "last4": "4081",
+        "exp_month": "12",
+        "exp_year": "2030",
+        "channel": "card",
+        "card_type": "visa ",
+        "bank": "TEST BANK",
+        "country_code": "NG",
+        "brand": "visa",
+        "reusable": true,
+        "signature": "SIG_jpZ4P1RJt0V9YfZoIbqt",
+        "account_name": null,
+        "receiver_bank_account_number": null,
+        "receiver_bank": null
+      },
+      "customer": {
+        "id": 327793453,
+        "first_name": null,
+        "last_name": null,
+        "email": "sophie82100@gmail.com",
+        "customer_code": "CUS_cclq8qb7zgw2b3i",
+        "phone": null,
+        "metadata": null,
+        "risk_action": "default",
+        "international_format_phone": null
+      },
+      "channel": "card",
+      "paidAt": "2025-12-23T18:39:04.000Z"
+    }
+  }
+}

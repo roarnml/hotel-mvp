@@ -1,0 +1,25 @@
+{
+  "loggedAt": "2026-01-04T11:57:45.365Z",
+  "endpoint": "/transaction/initialize",
+  "method": "POST",
+  "statusCode": 200,
+  "requestBody": {
+    "email": "danakinyemie@gmail.com",
+    "amount": 5000000,
+    "metadata": {
+      "bookingId": "cmjzogb690003uc0cpy9r6p5a",
+      "bookingRef": "BOOK-1767527862411-750",
+      "guestId": "cmjxtf0mu0004ucjccqvzvkyq"
+    },
+    "callback_url": "https://9bd3cbe1a128.ngrok-free.app/booking/success?reference=BOOK-1767527862411-750"
+  },
+  "responseBody": {
+    "status": true,
+    "message": "Authorization URL created",
+    "data": {
+      "authorization_url": "https://checkout.paystack.com/uapyrj290w4m8qx",
+      "access_code": "uapyrj290w4m8qx",
+      "reference": "606sa2ijvl"
+    }
+  }
+}

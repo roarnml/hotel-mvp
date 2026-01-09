@@ -1,0 +1,32 @@
+src/
+└── app/
+    └── api/
+        └── payments/
+            ├── initialize/
+            │   └── route.ts      # Creates booking + Paystack transaction
+            ├── webhook/
+            │   └── route.ts      # Paystack webhook (source of truth)
+            ├── verify/
+            │   └── route.ts      # Optional manual verification
+            └── ticket/
+                └── route.ts      # Fetch ticket + PDF details
+
+src/
+└── lib/
+    └── paystack/
+        ├── client.ts            # Axios / fetch wrapper
+        ├── verifySignature.ts   # Webhook HMAC verification
+        └── types.ts             # Paystack event typings
+
+src/
+└── services/
+    ├── booking.service.ts      # Create / confirm bookings
+    ├── payment.service.ts      # Payment state machine
+    ├── ticket.service.ts       # Ticket number + PDF generation
+    └── email.service.ts        # Send ticket email
+
+src/
+└── utils/
+    ├── generateBookingRef.ts
+    ├── generateTicketNumber.ts
+    └── dateHelpers.ts
