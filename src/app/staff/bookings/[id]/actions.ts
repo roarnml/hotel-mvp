@@ -340,6 +340,7 @@ export async function checkOutGuest(bookingId: string) {
     if (booking.status !== "CHECKED_IN")
       throw new Error("Guest is not checked in")
 
+    // 1️⃣ Update booking status and check-out timestamp
     await tx.booking.update({
       where: { id: bookingId },
       data: {
@@ -348,9 +349,18 @@ export async function checkOutGuest(bookingId: string) {
       },
     })
 
+    // 2️⃣ Delete room assignment if exists
     if (booking.roomAssignment) {
       await tx.roomAssignment.delete({
         where: { id: booking.roomAssignment.id },
+      })
+
+      // 3️⃣ Increment availableRooms for the suite
+      await tx.suite.update({
+        where: { id: booking.roomAssignment.suiteId },
+        data: {
+          availableRooms: { increment: 1 },
+        },
       })
     }
   })
