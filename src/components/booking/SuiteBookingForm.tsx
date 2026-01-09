@@ -213,7 +213,7 @@ export default function SuiteBookingForm({ suite }: SuiteBookingFormProps) {
       >
         {loading
           ? "Processing..."
-          : `Book Now - ₦${formatNaira(totalPrice).toLocaleString()}`}
+          : `Book Now - ${formatNaira(totalPrice).toLocaleString()}`}
       </button>
     </form>
   )
