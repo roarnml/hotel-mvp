@@ -10,15 +10,13 @@ const prisma = new PrismaClient()
 // 🎯 Update variables here
 const suiteId = "cmk2mqztf0004uck4fb2uuvhk" // replace with the suite ID you want to update
 const newDescription = `
-Comfortable Accommodations: Comfort Resort & Suites offers well-designed Regular Chalets that combine comfort, convenience, and practical functionality. Each chalet features air-conditioning, sound-proof rooms, private bathrooms, Smart TV entertainment, and reliable internet access suitable for both work and leisure.
+Standard 2-Bedroom Chalet:
 
-Entertainment & Leisure: Guests have access to the resort’s gaming zone and bar, providing a relaxed and enjoyable stay for individuals, couples, and small families.
+Escape to comfort in our cozy 2-bedroom chalet, perfect for families or friends traveling together! Sleeps 4 adults 
 
-Dining Experience: Room service is available for guests who prefer dining in a comfortable and private setting.
+Relax in comfort, make memories with loved ones
 
-Convenient Facilities: The resort provides 24-hour front desk support, daily housekeeping, and complimentary on-site parking to ensure a smooth and hassle-free stay.
-
-Most Popular Facilities: Free Internet, sound-proof rooms, gaming zone, bar, room service, Smart TV, and free parking.
+Ideal for a relaxing getaway at Comfort Resort & Suites, Ile-Ife.
 
 `
 

@@ -5,6 +5,7 @@ import SuiteCard from "@/components/booking/SuiteCard"
 import { motion } from "framer-motion"
 import { SuiteStatus } from "@/lib/types"
 import { SuiteCategory } from "@prisma/client"
+import { FaWhatsapp } from "react-icons/fa";
 
 interface Suite {
   id: string
@@ -85,16 +86,17 @@ export default function Home() {
             transition={{ delay: 0.6 }}
             className="mt-10 flex gap-6"
           >
-            <a
-              href="/suites"
-              className="px-8 py-4 text-sm uppercase tracking-widest bg-white text-black hover:bg-zinc-200 transition"
-            >
-              Book a Suite
-            </a>
+          <button
+            onClick={() => window.open("https://wa.me/2348098039194", "_blank")}
+            className="flex items-center gap-2 px-6 py-3 text-sm uppercase tracking-widest bg-transparent text-white hover:border-green-500 hover:border-4 transition rounded"
+          >
+            <FaWhatsapp className="w-15 h-15 hover:text-green-500" />
+            Contact via WhatsApp
+          </button>
 
             <a
               href="#suites"
-              className="px-8 py-4 text-sm uppercase tracking-widest border border-white/40 hover:border-white transition"
+              className="px-8 py-8 text-sm uppercase tracking-widest border border-white/40 hover:border-white transition"
             >
               Explore Suites
             </a>
