@@ -118,8 +118,9 @@ function Carousel({ slides }: { slides: { type: string; src: string }[] }) {
   )
 }
 */
-
 // src/app/(public)/gallery/page.tsx
+export const dynamic = "force-dynamic"
+
 import GalleryUI from "./GalleryUI"
 import { prisma } from "@/lib/prisma"
 
@@ -128,11 +129,11 @@ export default async function GalleryPage() {
     where: {
       isActive: true,
       status: {
-        not: "INACTIVE", // don’t show dead inventory
+        not: "INACTIVE",
       },
     },
     orderBy: [
-      { status: "asc" },       // AVAILABLE first
+      { status: "asc" },
       { createdAt: "desc" },
     ],
     select: {
@@ -151,4 +152,3 @@ export default async function GalleryPage() {
 
   return <GalleryUI suites={suites} />
 }
-
