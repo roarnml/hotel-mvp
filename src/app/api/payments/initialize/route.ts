@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
 }
 */
 
-import { NextRequest, NextResponse } from "next/server"
+/*import { NextRequest, NextResponse } from "next/server"
 import { paystackRequest } from "@/lib/paystack/client"
 import { createBooking } from "@/services/booking.service"
 import { createPendingPayment } from "@/services/payment.service"
@@ -276,5 +276,98 @@ export async function POST(req: NextRequest) {
       { error: err.message || "Payment initialization failed" },
       { status: 500 }
     )
+  }
+}
+*/
+
+
+
+import { NextRequest, NextResponse } from "next/server"
+import { paystackRequest } from "@/lib/paystack/client"
+import { createBooking } from "@/services/booking.service"
+import { createPendingPayment } from "@/services/payment.service"
+import { findOrCreateGuest } from "@/services/guests.service"
+import { prisma } from "@/lib/prisma"
+import { calculateNights } from "@/lib/date"
+
+const VAT_RATE = 0.075
+const TRANSACTION_RATE = 0.0025
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json()
+    const {
+      suiteId,
+      fullName,
+      email,
+      phone,
+      address,
+      checkInDate,
+      checkOutDate,
+      chaletCount = 1,
+      userId,
+    } = body
+
+    if (!suiteId || !fullName || !email || !checkInDate || !checkOutDate) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    }
+
+    const guest = await findOrCreateGuest({ name: fullName, email, phone, address })
+    const booking = await createBooking({
+      suiteId,
+      guestId: guest.id,
+      name: fullName,
+      email,
+      checkIn: new Date(checkInDate),
+      checkOut: new Date(checkOutDate),
+      userId,
+    })
+
+    const nights = calculateNights(checkInDate, checkOutDate)
+    const baseAmount = booking.suite.price * nights * chaletCount
+    const vat = baseAmount * VAT_RATE
+    const transactionFee = baseAmount * TRANSACTION_RATE
+    const amountInKobo = Math.ceil(baseAmount + vat + transactionFee)
+
+    // Check for existing pending payment
+    const existingPayment = await prisma.payment.findFirst({
+      where: { booking: { id: booking.id }, status: "PENDING" }
+    })
+    if (existingPayment) {
+      return NextResponse.json({
+        reference: existingPayment.reference,
+        bookingRef: booking.bookingRef,
+      })
+    }
+
+    const payment = await createPendingPayment({
+      bookingId: booking.id,
+      amount: amountInKobo
+    })
+
+    const paystackResponse = await paystackRequest("/transaction/initialize", "POST", {
+      email,
+      amount: amountInKobo,
+      reference: payment.reference,
+      metadata: {
+        bookingId: booking.id,
+        bookingRef: booking.bookingRef,
+        guestId: guest.id,
+        chaletCount,
+        vat,
+        transactionFee
+      },
+      callback_url: `${process.env.NEXT_PUBLIC_BASE_URL}/booking/success`,
+    })
+
+    return NextResponse.json({
+      authorizationUrl: paystackResponse.data.authorization_url,
+      reference: payment.reference,
+      bookingRef: booking.bookingRef
+    })
+
+  } catch (err: any) {
+    console.error("Payment initialization error:", err)
+    return NextResponse.json({ error: err.message || "Payment initialization failed" }, { status: 500 })
   }
 }

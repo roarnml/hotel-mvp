@@ -1,0 +1,29 @@
+{
+  "loggedAt": "2026-01-27T18:32:18.368Z",
+  "endpoint": "/transaction/initialize",
+  "method": "POST",
+  "statusCode": 200,
+  "requestBody": {
+    "email": "roarnml@gmail.com",
+    "amount": 32971500,
+    "reference": "PAY-da2c0b05-5a0a-41fd-8fe5-1c95efdb39ef",
+    "metadata": {
+      "bookingId": "cmkwxo97z000buc4omvuorgz7",
+      "bookingRef": "BOOK-1769538733482-904",
+      "guestId": "cmkwp2zy40000i904pmwp6ayo",
+      "chaletCount": 3,
+      "vat": 2295000,
+      "transactionFee": 76500
+    },
+    "callback_url": "https://ce24129c4436.ngrok-free.app/booking/success"
+  },
+  "responseBody": {
+    "status": true,
+    "message": "Authorization URL created",
+    "data": {
+      "authorization_url": "https://checkout.paystack.com/xt8xshnr0h9k6dt",
+      "access_code": "xt8xshnr0h9k6dt",
+      "reference": "PAY-da2c0b05-5a0a-41fd-8fe5-1c95efdb39ef"
+    }
+  }
+}
