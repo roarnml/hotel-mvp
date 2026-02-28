@@ -1,0 +1,36 @@
+{
+  "loggedAt": "2026-02-26T05:17:51.448Z",
+  "endpoint": "/transaction/initialize",
+  "method": "POST",
+  "statusCode": 200,
+  "requestBody": {
+    "email": "roarnml@gmail.com",
+    "amount": 10990500,
+    "reference": "HB-c51fe62f7ebe41a8b4e1df52c9363769",
+    "metadata": {
+      "bookingId": "cmm30i6a60017ucnsexyzk9tb",
+      "bookingRef": "BK-64EEDB2B",
+      "guestId": "cmkwp2zy40000i904pmwp6ayo",
+      "suiteId": "cmkwo8dtb0004uct0fyj2chbu",
+      "chaletCount": 2,
+      "nights": 1,
+      "breakdown": {
+        "baseAmount": 10200000,
+        "vatAmount": 765000,
+        "transactionFee": 25500,
+        "totalAmount": 10990500,
+        "currency": "NGN"
+      }
+    },
+    "callback_url": "https://overanimatedly-vacillatory-marietta.ngrok-free.dev//booking/success"
+  },
+  "responseBody": {
+    "status": true,
+    "message": "Authorization URL created",
+    "data": {
+      "authorization_url": "https://checkout.paystack.com/8izvd0b8u9ko3fh",
+      "access_code": "8izvd0b8u9ko3fh",
+      "reference": "HB-c51fe62f7ebe41a8b4e1df52c9363769"
+    }
+  }
+}
