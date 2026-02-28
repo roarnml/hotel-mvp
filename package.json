@@ -3,22 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "postinstall": "prisma generate",
+    "postinstall": "pnpm run prisma:generate",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "prisma:merge": "node scripts/merge-prisma.js",
-    "prisma:push": "npm run prisma:merge && npx prisma db push",
-    "prisma:generate": "npm run prisma:merge && npx prisma generate",
-    "prisma:migrate": "npm run prisma:merge && npx prisma migrate dev"
+    "prisma:push": "pnpm prisma db push",
+    "prisma:generate": "pnpm prisma generate",
+    "prisma:migrate": "pnpm prisma migrate dev"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
   },
   "dependencies": {
     "@faker-js/faker": "^10.1.0",
-    "@prisma/client": "^4.16.2",
+    "@prisma/client": "4.16.2",
     "@sendgrid/mail": "^8.1.6",
     "@tanstack/react-query": "^5.90.12",
     "bcrypt": "^6.0.0",
@@ -52,7 +51,7 @@
     "stripe": "^20.0.0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.2.1",
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^20.19.26",
     "@types/nodemailer": "^7.0.4",
@@ -62,10 +61,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
+    "baseline-browser-mapping": "^2.9.19",
     "eslint": "^9",
     "eslint-config-next": "16.0.9",
     "prisma": "4.16.2",
-    "tailwindcss": "^4",
+    "tailwindcss": "^4.2.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }

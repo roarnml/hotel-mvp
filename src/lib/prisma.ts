@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+/*import { PrismaClient } from "@prisma/client";
 
 
 // Create a global reference to avoid multiple PrismaClient instances in dev
@@ -18,3 +18,16 @@ export const prisma: PrismaClient =
 if (process.env.NODE_ENV !== "production") {
   globalThis.prisma = prisma;
 }
+*/
+
+import { PrismaClient } from "@prisma/client"
+
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: process.env.NODE_ENV === "development" ? ["query", "info", "warn", "error"] : ["error"],
+  })
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma

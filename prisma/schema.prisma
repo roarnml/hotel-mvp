@@ -29,28 +29,27 @@ model User {
   canCheckIn             Boolean @default(false)
   canCheckOut            Boolean @default(false)
   canAssignChalet        Boolean @default(false)
-  canEditRoomMaintenance Boolean @default(false)  // false for check-in staff
-  canEditProfile         Boolean @default(true)   // name/email/number restricted
+  canEditRoomMaintenance Boolean @default(false) // false for check-in staff
+  canEditProfile         Boolean @default(true) // name/email/number restricted
 
   preferences UserPreferences? // LINKED HERE
-  
+
   @@index([role])
 }
 
 model UserPreferences {
-  id          String   @id @default(cuid())
-  userId      String   @unique
+  id                    String  @id @default(cuid())
+  userId                String  @unique
   showTodayOnlyBookings Boolean @default(true)
   autoFocusRoomInput    Boolean @default(true)
   confirmBeforeCheckout Boolean @default(true)
   notifyCheckInSuccess  Boolean @default(true)
   notifyVIPGuest        Boolean @default(true)
 
-  user User @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 
 //////////////////////
 // GUESTS (CUSTOMERS)
@@ -70,27 +69,29 @@ model Guest {
 }
 
 model Suite {
-  id             String      @id @default(cuid())
-  name           String      @unique        // Category name: VIP / Regular Deluxe
-  category       SuiteCategory                 // Enum for VIP/REGULAR
-  description    String
-  price          Int
-  images         String[]                       // URLs or file paths
-  video          String?
-  capacity       Int                             // Guests per suite
-  features       String[]
+  id          String        @id @default(cuid())
+  name        String        @unique // Category name: VIP / Regular Deluxe
+  category    SuiteCategory // Enum for VIP/REGULAR
+  description String
+  price       Int
+  images      String[] // URLs or file paths
+  video       String?
+  capacity    Int // Guests per suite
+  features    String[]
 
-  availableRooms Int         @default(0)       // Only decremented when booking confirmed & ticket sent
+  availableRooms Int         @default(0) // Only decremented when booking confirmed & ticket sent
   status         SuiteStatus @default(AVAILABLE)
   isActive       Boolean     @default(true)
 
   // Operational
-  bookings        Booking[]
+  bookings Booking[]
+  details  BookingDetails[]
+
   seasonalRates   SeasonalRate[]
   roomAssignments RoomAssignment[]
 
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Suite category for clarity
@@ -100,34 +101,37 @@ enum SuiteCategory {
 }
 
 enum SuiteStatus {
-  ACTIVE        // Sellable
-  MAINTENANCE   // Temporarily blocked
-  INACTIVE      // Permanently disabled
+  ACTIVE // Sellable
+  MAINTENANCE // Temporarily blocked
+  INACTIVE // Permanently disabled
   AVAILABLE
   OCCUPIED
-  SOON          // Coming soon
+  SOON // Coming soon
 }
 
 model Booking {
-  id            String  @id @default(cuid())
-  bookingRef    String  @unique
-  suiteId       String
-  guestId       String?
-  userId        String? // Staff who created booking
+  id         String @id @default(cuid())
+  bookingRef String @unique
 
-  name          String
-  email         String
+  detailsId String?          @unique
+  details   BookingDetails[] // 👈 many details per booking
+  suiteId   String
+  guestId   String?
+  userId    String? // Staff who created booking
 
-  checkIn       DateTime
-  checkOut      DateTime
+  name  String
+  email String
 
-  amountPaid    Int?
+  checkIn  DateTime
+  checkOut DateTime
+
+  amountPaid Int?
 
   status        BookingStatus @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
 
-  ticketNumber   String? @unique
-  checkInNumber  String? @unique
+  ticketNumber   String?   @unique
+  checkInNumber  String?   @unique
   ticketPdfUrl   String?
   ticketIssuedAt DateTime?
   emailSentAt    DateTime?
@@ -135,10 +139,10 @@ model Booking {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  suite   Suite   @relation(fields: [suiteId], references: [id])
-  guest   Guest?  @relation(fields: [guestId], references: [id])
-  user    User?   @relation(fields: [userId], references: [id])
-  payment Payment?
+  suite          Suite           @relation(fields: [suiteId], references: [id])
+  guest          Guest?          @relation(fields: [guestId], references: [id])
+  user           User?           @relation(fields: [userId], references: [id])
+  payment        Payment?
   roomAssignment RoomAssignment?
 
   @@index([suiteId, checkIn, checkOut])
@@ -152,6 +156,46 @@ enum BookingStatus {
   CANCELLED
 }
 
+model BookingDetails {
+  id String @id @default(cuid())
+
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id])
+
+  suiteId String
+  suite   Suite  @relation(fields: [suiteId], references: [id])
+
+  // Occupancy
+  nights      Int
+  chaletCount Int @default(1) // rooms/suites booked
+
+  // Pricing snapshot (kobo)
+  pricePerNight  Int
+  baseAmount     Int
+  vatAmount      Int
+  transactionFee Int
+  totalAmount    Int
+
+  currency String @default("NGN")
+
+  // Anti-tamper snapshot
+  pricingFormula String? // JSON or text for audit trail
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  payments  Payment[]
+
+  @@index([suiteId])
+}
+
+model BookingEvent {
+  id        String   @id @default(uuid())
+  bookingId String
+  type      String
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
 /////////////////////////
 // ROOM ASSIGNMENT
 /////////////////////////
@@ -161,7 +205,7 @@ model RoomAssignment {
   id         String   @id @default(cuid())
   bookingId  String   @unique
   suiteId    String
-  roomNumber String   // Assigned room number
+  roomNumber String // Assigned room number
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -172,19 +216,22 @@ model RoomAssignment {
 }
 
 model Payment {
-  id        String @id @default(cuid())
+  id String @id @default(cuid())
 
-  bookingId String @unique
+  bookingId String  @unique
   booking   Booking @relation(fields: [bookingId], references: [id])
 
-  reference String @unique // Paystack ref
+  detailsId String?
+  details   BookingDetails? @relation(fields: [detailsId], references: [id])
+
+  reference String          @unique // Paystack ref
   provider  PaymentProvider
 
-  amount       Int      // Expected amount (kobo)
-  amountPaid  Int?     // Actual amount paid (kobo)
-  currency    String   @default("NGN")
+  amount     Int // Expected amount (kobo)
+  amountPaid Int? // Actual amount paid (kobo)
+  currency   String @default("NGN")
 
-  status     PaymentStatus @default(PENDING)
+  status PaymentStatus @default(PENDING)
 
   transactionId  String? @unique
   receiptUrl     String?
@@ -193,8 +240,8 @@ model Payment {
   rawResponse Json?
 
   initiatedAt DateTime? // when payment was initialized with provider
-  paidAt   DateTime?
-  failedAt DateTime?
+  paidAt      DateTime?
+  failedAt    DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -239,5 +286,5 @@ enum Role {
   OWNER
   MANAGER
   CHECKIN_STAFF
-  STAFF   // fallback/general staff
+  STAFF // fallback/general staff
 }

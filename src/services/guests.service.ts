@@ -1,4 +1,6 @@
+// services/guests.service.ts
 import { prisma } from "@/lib/prisma"
+import { Prisma} from "@prisma/client"
 
 type CreateGuestInput = {
   name: string
@@ -7,19 +9,30 @@ type CreateGuestInput = {
   address?: string
 }
 
-export async function findOrCreateGuest(data: CreateGuestInput) {
-  const existing = await prisma.guest.findUnique({
-    where: { email: data.email },
-  })
+/**
+ * Find or create a guest by unique email.
+ * - Transaction-safe (pass tx from prisma.$transaction)
+ * - Race-condition safe via upsert
+ * - Keeps guest profile up-to-date on repeat bookings
+ */
+export async function findOrCreateGuest(
+  data: CreateGuestInput,
+  db: Prisma.TransactionClient = prisma
+) {
+  const { name, email, phone, address } = data
 
-  if (existing) return existing
-
-  return prisma.guest.create({
-    data: {
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      address: data.address,
+  return db.guest.upsert({
+    where: { email },
+    update: {
+      name,
+      phone: phone || undefined,
+      address: address || undefined,
+    },
+    create: {
+      name,
+      email,
+      phone: phone || undefined,
+      address: address || undefined,
     },
   })
 }

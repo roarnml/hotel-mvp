@@ -1,143 +1,14 @@
-/*"use server"
 
-import { prisma } from "@/lib/prisma"
-import { revalidatePath } from "next/cache"
-import { Booking } from "@prisma/client"
-
-const roomPools: Record<string, string[]> = {
-  "Presidential Suite": ["101", "102", "103", "104", "105", "106", "107", "108"],
-  "Deluxe Suite": ["201", "202", "203", "204", "205"],
-}
-
-/**
- * Get a single booking by ID, including guest and suite details.
- *
-export async function getBookingById(bookingId: string) {
-  return prisma.booking.findUnique({
-    where: { id: bookingId },
-    include: {
-      guest: true,
-      suite: true,
-    },
-  })
-}
-
-/**
- * Check-in a booking and assign a room.
- * Optionally pass a manual room number.
- *
-export async function checkInGuest(
-  bookingId: string,
-  manualRoomNumber?: string
-): Promise<Booking & { suite: { roomNumber: string } }> {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    include: { suite: true, guest: true },
-  })
-
-  if (!booking) throw new Error("Booking not found")
-  if (booking.status === "CHECKED_IN") throw new Error("Booking already checked in")
-
-  const suiteName = booking.suite.name
-  const pool = roomPools[suiteName]
-
-  let assignedRoom = manualRoomNumber || booking.suite.roomNumber
-
-  if (!assignedRoom && pool) {
-    // Get rooms already taken by other CHECKED_IN bookings
-    const activeBookings = await prisma.booking.findMany({
-      where: {
-        suiteId: booking.suiteId,
-        status: "CHECKED_IN",
-      },
-      include: { suite: true },
-    })
-
-    const usedRooms = activeBookings.map((b) => b.suite.roomNumber)
-    const availableRooms = pool.filter((r) => !usedRooms.includes(r))
-    assignedRoom = availableRooms[0] ?? pool[0] // fallback if all taken
-  }
-
-  // Update booking status and assign room
-  const updatedBooking = await prisma.booking.update({
-    where: { id: bookingId },
-    data: {
-      status: "CHECKED_IN",
-      checkIn: new Date(),
-      suite: {
-        update: {
-          roomNumber: assignedRoom,
-        },
-      },
-    },
-    include: { suite: true, guest: true },
-  })
-
-  revalidatePath("/staff/bookings")
-  return updatedBooking
-}
-
-/**
- * Check-out a booking and release room availability.
- *
-export async function checkOutGuest(bookingId: string) {
-  await prisma.$transaction(async (tx) => {
-    const booking = await tx.booking.findUnique({
-      where: { id: bookingId },
-    })
-
-    if (!booking) throw new Error("Booking not found")
-    if (booking.status !== "CHECKED_IN") {
-      throw new Error("Cannot check-out a guest who is not checked in")
-    }
-
-    // 1️⃣ Mark booking as checked out
-    await tx.booking.update({
-      where: { id: bookingId },
-      data: {
-        status: "CHECKED_OUT",
-        checkOut: new Date(),
-      },
-    })
-
-    // 2️⃣ Increment available rooms for the suite category
-    await tx.suite.update({
-      where: { id: booking.suiteId },
-      data: {
-        availableRooms: {
-          increment: 1,
-        },
-      },
-    })
-  })
-
-  revalidatePath("/staff/bookings")
-}
-
-/**
- * Mark a guest as VIP.
- *
-export async function markGuestVIP(bookingId: string) {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    select: { guestId: true },
-  })
-
-  if (!booking) throw new Error("Booking not found")
-
-  await prisma.guest.update({
-    where: { id: booking.guestId ?? "" },
-    data: { isVIP: true },
-  })
-
-  revalidatePath("/staff/bookings")
-}
-*/
-
+// app/staff/bookings/[id]/actions.ts
 "use server"
 
+import { requireStaffRole } from "@/lib/auth/requireStaffRole"
+
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import crypto from "crypto"
+import { PaymentStatus } from "@prisma/client"
+import { sendTicketEmailForBooking } from "@/services/email.service"
 
 /* ----------------------------------------
    Room pools (can later move to DB)
@@ -145,92 +16,59 @@ import { revalidatePath } from "next/cache"
 const roomPools: Record<string, string[]> = {
   "Presidential Suite": ["101", "102", "103", "104", "105", "106", "107", "108"],
   "Deluxe Suite": ["201", "202", "203", "204", "205"],
-  "REGULAR": ["Chalet 1", "Chalet 2", "Chalet 3", "Chalet 4", "Chalet 5", "Chalet 6"],
-  "VIP": ["Villa 1", "Villa 2", "Villa 3"],
+  REGULAR: ["Chalet 1", "Chalet 2", "Chalet 3", "Chalet 4", "Chalet 5", "Chalet 6"],
+  VIP: ["Villa 1", "Villa 2", "Villa 3"],
 }
 
 /* ----------------------------------------
-   Get Booking by ID
+   Helpers
 ----------------------------------------- */
-// app/staff/actions/booking.ts
+function nowIso() {
+  return new Date().toISOString()
+}
 
-
-export async function getBookingById(bookingId: string) {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId }, // <- use 'id', not 'bookingRef'
-    include: {
-      guest: true,
-      suite: true,
-      roomAssignment: true,
-      payment: true,
-      user: true,
+async function logBookingEvent(tx: any, bookingId: string, type: string, metadata?: any) {
+  await tx.bookingEvent.create({
+    data: {
+      bookingId,
+      type,
+      metadata: metadata ?? {},
     },
   })
+}
 
-  if (!booking) return null
-
-  return {
-    id: booking.id,
-    bookingRef: booking.bookingRef,
-    suiteId: booking.suiteId,
-    guestId: booking.guestId,
-    userId: booking.userId,
-
-    name: booking.name,
-    email: booking.email,
-
-    checkIn: booking.checkIn.toISOString(),
-    checkOut: booking.checkOut.toISOString(),
-
-    amountPaid: booking.amountPaid,
-
-    status: booking.status,
-    paymentStatus: booking.paymentStatus,
-
-    ticketNumber: booking.ticketNumber,
-    checkInNumber: booking.checkInNumber,
-    ticketPdfUrl: booking.ticketPdfUrl,
-    ticketIssuedAt: booking.ticketIssuedAt?.toISOString() ?? null,
-    emailSentAt: booking.emailSentAt?.toISOString() ?? null,
-
-    createdAt: booking.createdAt.toISOString(),
-    updatedAt: booking.updatedAt.toISOString(),
-
-    suite: {
-      id: booking.suite.id,
-      name: booking.suite.name,
-      category: booking.suite.category,
-    },
-
-    guest: booking.guest
-      ? {
-          id: booking.guest.id,
-          name: booking.guest.name,
-          email: booking.guest.email,
-          isVIP: booking.guest.isVIP,
-        }
-      : null,
-
-    roomAssignment: booking.roomAssignment
-      ? {
-          id: booking.roomAssignment.id,
-          roomNumber: booking.roomAssignment.roomNumber,
-        }
-      : null,
-  }
+function getRoomPoolForSuiteNameOrCategory(suiteName: string, suiteCategory: string) {
+  return roomPools[suiteName] ?? roomPools[suiteCategory] ?? []
 }
 
 /* ----------------------------------------
-   CHECK-IN (HARD-LOCKED)
+   Get room options for this booking (server-side)
 ----------------------------------------- */
-import crypto from "crypto"
+export async function getRoomOptionsForBooking(bookingId: string) {
+  await requireStaffRole(["CHECKIN_STAFF", "STAFF"]) // ✅ only check-in staff
 
-export async function checkInGuest(
-  bookingId: string,
-  manualRoomNumber?: string
-) {
-  return await prisma.$transaction(async (tx) => {
-    // 1️⃣ Fetch booking
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: { suite: true },
+  })
+  if (!booking) return []
+
+  const allRooms = getRoomPoolForSuiteNameOrCategory(booking.suite.name, String(booking.suite.category))
+  if (!allRooms.length) return []
+
+  const assigned = await prisma.roomAssignment.findMany({
+    where: { suiteId: booking.suiteId },
+    select: { roomNumber: true },
+  })
+  const used = new Set(assigned.map((r) => r.roomNumber))
+  return allRooms.filter((r) => !used.has(r))
+}
+/* ----------------------------------------
+   CHECK-IN (atomic, does NOT overwrite stay dates)
+----------------------------------------- */
+export async function checkInGuest(bookingId: string, manualRoomNumber?: string) {
+  await requireStaffRole(["CHECKIN_STAFF", "STAFF"]) // ✅ only check-in staff
+  const result = await prisma.$transaction(async (tx) => {
     const booking = await tx.booking.findUnique({
       where: { id: bookingId },
       include: {
@@ -238,49 +76,40 @@ export async function checkInGuest(
         guest: true,
         roomAssignment: true,
         payment: true,
+        details: { orderBy: { createdAt: "desc" }, take: 1 },
       },
     })
-
     if (!booking) throw new Error("Booking not found")
 
-    // 2️⃣ Business validations
-    if (booking.status === "CHECKED_IN")
-      throw new Error("Guest already checked in")
-
-    if (booking.status !== "CONFIRMED")
-      throw new Error("Booking is not confirmed")
-
-    if (!booking.payment || booking.payment.status !== "PAID")
+    // Validations
+    if (booking.status === "CHECKED_IN") throw new Error("Guest already checked in")
+    if (booking.status !== "CONFIRMED") throw new Error("Booking is not confirmed")
+    if (!booking.payment || booking.payment.status !== PaymentStatus.PAID)
       throw new Error("Payment not completed")
+    if (booking.roomAssignment) throw new Error("Room already assigned")
 
-    if (booking.roomAssignment)
-      throw new Error("Room already assigned")
+    // Determine room pool
+    const pool = getRoomPoolForSuiteNameOrCategory(booking.suite.name, String(booking.suite.category))
+    if (!pool.length) throw new Error("No room pool configured for this suite/category")
 
-    // 3️⃣ Fetch active rooms for this suite
+    // Fetch used rooms
     const activeRooms = await tx.roomAssignment.findMany({
       where: { suiteId: booking.suiteId },
       select: { roomNumber: true },
     })
-
     const usedRooms = new Set(activeRooms.map((r) => r.roomNumber))
 
-    // 4️⃣ Define all possible rooms for this suite
-    // ⚠️ Adjust this logic if your suites have variable room ranges
-    const allRooms = Array.from({ length: 10 }, (_, i) => (101 + i).toString())
-    const availableRooms = allRooms.filter((r) => !usedRooms.has(r))
+    // Available rooms
+    const availableRooms = pool.filter((r) => !usedRooms.has(r))
+    if (!availableRooms.length) throw new Error("No available rooms for this suite")
 
-    if (!availableRooms.length)
-      throw new Error("No available rooms in this suite")
+    // Assign room
+    let assignedRoom = manualRoomNumber?.trim()
+    if (!assignedRoom) assignedRoom = availableRooms[0]
+    if (usedRooms.has(assignedRoom)) throw new Error("Selected room is already assigned")
+    if (!pool.includes(assignedRoom)) throw new Error("Selected room is not valid for this suite")
 
-    // 5️⃣ Assign room
-    let assignedRoom = manualRoomNumber
-    if (!assignedRoom) {
-      assignedRoom = availableRooms[0] // auto-assign first available
-    } else if (usedRooms.has(assignedRoom)) {
-      throw new Error("Selected room is already assigned")
-    }
-
-    // 6️⃣ Create room assignment
+    // Create assignment
     await tx.roomAssignment.create({
       data: {
         bookingId: booking.id,
@@ -289,96 +118,102 @@ export async function checkInGuest(
       },
     })
 
-    // 7️⃣ Update booking
-    const updatedBooking = await tx.booking.update({
+    // Update booking status only (do NOT overwrite stay dates)
+    const updated = await tx.booking.update({
       where: { id: bookingId },
       data: {
         status: "CHECKED_IN",
-        checkIn: new Date(),
         checkInNumber: crypto.randomUUID(),
       },
-      include: {
-        suite: true,
-        guest: true,
-        roomAssignment: true,
-      },
+      select: { id: true, bookingRef: true, status: true, checkInNumber: true },
     })
 
-    // 8️⃣ Revalidate paths for Next.js cache
-    revalidatePath("/staff/bookings")
-    revalidatePath(`/staff/bookings/${bookingId}`)
+    // Log event
+    await logBookingEvent(tx, bookingId, "CHECK_IN", {
+      at: nowIso(),
+      roomNumber: assignedRoom,
+      staffNote: "Checked in from staff panel",
+    })
 
-    // 9️⃣ Return updated booking info for the frontend
     return {
-      id: updatedBooking.id,
-      guest: updatedBooking.guest,
-      suite: {
-        name: updatedBooking.suite.name,
-        category: updatedBooking.suite.category,
-        type: updatedBooking.suite.name,
-      },
-      roomNumber: updatedBooking.roomAssignment?.roomNumber ?? null,
-      checkIn: updatedBooking.checkIn,
-      checkOut: updatedBooking.checkOut,
-      status: updatedBooking.status,
-      vip: updatedBooking.guest?.isVIP ?? false,
-    }
-  })
-}
-
-/* ----------------------------------------
-   CHECK-OUT (SAFE & ATOMIC)
------------------------------------------ */
-export async function checkOutGuest(bookingId: string) {
-  await prisma.$transaction(async (tx) => {
-    const booking = await tx.booking.findUnique({
-      where: { id: bookingId },
-      include: { roomAssignment: true },
-    })
-
-    if (!booking) throw new Error("Booking not found")
-    if (booking.status !== "CHECKED_IN")
-      throw new Error("Guest is not checked in")
-
-    // 1️⃣ Update booking status and check-out timestamp
-    await tx.booking.update({
-      where: { id: bookingId },
-      data: {
-        status: "CHECKED_OUT",
-        checkOut: new Date(),
-      },
-    })
-
-    // 2️⃣ Delete room assignment if exists
-    if (booking.roomAssignment) {
-      await tx.roomAssignment.delete({
-        where: { id: booking.roomAssignment.id },
-      })
-
-      // 3️⃣ Increment availableRooms for the suite
-      await tx.suite.update({
-        where: { id: booking.roomAssignment.suiteId },
-        data: {
-          availableRooms: { increment: 1 },
-        },
-      })
+      id: updated.id,
+      bookingRef: updated.bookingRef,
+      status: updated.status,
+      checkInNumber: updated.checkInNumber,
+      roomNumber: assignedRoom,
     }
   })
 
   revalidatePath("/staff/bookings")
+  revalidatePath(`/staff/bookings/${bookingId}`)
+  return result
+}
+
+/* ----------------------------------------
+   CHECK-OUT (atomic, does NOT overwrite stay dates)
+----------------------------------------- */
+export async function checkOutGuest(bookingId: string) {
+  await requireStaffRole(["CHECKIN_STAFF", "STAFF"]) // ✅ only check-in staff
+  const result = await prisma.$transaction(async (tx) => {
+    const booking = await tx.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        roomAssignment: true,
+        details: { orderBy: { createdAt: "desc" }, take: 1 },
+        suite: true,
+      },
+    })
+    if (!booking) throw new Error("Booking not found")
+    if (booking.status !== "CHECKED_IN") throw new Error("Guest is not checked in")
+
+    // Update booking status only
+    const updated = await tx.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: "CHECKED_OUT",
+      },
+      select: { id: true, bookingRef: true, status: true },
+    })
+
+    // release room assignment
+    if (booking.roomAssignment) {
+      await tx.roomAssignment.delete({ where: { id: booking.roomAssignment.id } })
+    }
+
+    // Increment availableRooms based on chaletCount if present, else 1
+    const chaletCount = booking.details?.[0]?.chaletCount ?? 1
+    const roomsToIncrement = Math.max(1, chaletCount)
+
+    await tx.suite.update({
+      where: { id: booking.suiteId },
+      data: { availableRooms: { increment: roomsToIncrement } },
+    })
+
+    await logBookingEvent(tx, bookingId, "CHECK_OUT", {
+      at: nowIso(),
+      roomNumber: booking.roomAssignment?.roomNumber ?? null,
+      roomsIncremented: roomsToIncrement,
+      staffNote: "Checked out from staff panel",
+    })
+
+    return { id: updated.id, bookingRef: updated.bookingRef, status: updated.status }
+  })
+
+  revalidatePath("/staff/bookings")
+  revalidatePath(`/staff/bookings/${bookingId}`)
+  return result
 }
 
 /* ----------------------------------------
    VIP FLAG
 ----------------------------------------- */
 export async function markGuestVIP(bookingId: string) {
+  await requireStaffRole(["MANAGER", "OWNER"]) // ✅ block check-in staff
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     select: { guestId: true },
   })
-
-  if (!booking?.guestId)
-    throw new Error("Guest not found")
+  if (!booking?.guestId) throw new Error("Guest not found")
 
   await prisma.guest.update({
     where: { id: booking.guestId },
@@ -386,100 +221,17 @@ export async function markGuestVIP(bookingId: string) {
   })
 
   revalidatePath("/staff/bookings")
+  revalidatePath(`/staff/bookings/${bookingId}`)
+  return { ok: true }
 }
 
 /* ----------------------------------------
-   ROOM POOLS (READ-ONLY FOR UI)
+   RESEND TICKET EMAIL (safe)
 ----------------------------------------- */
-// actions.ts
-// actions.ts
-export async function getRoomPoolForSuite(suiteId: string) {
-  try {
-    // Use absolute URL in client
-    const url =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/api/suite/${suiteId}/available-rooms`
-        : `/api/suite/${suiteId}/available-rooms` // SSR fallback
-
-    const res = await fetch(url)
-    if (!res.ok) throw new Error("Failed to fetch available rooms")
-    const rooms: string[] = await res.json()
-    return rooms
-  } catch (err) {
-    console.error(err)
-    return []
-  }
-}
-
-/**
- * Delete Pending Bookings
- */
-
-interface DeleteBookingArgs {
-  bookingId: string
-  adminPassword?: string
-  staffRole: "OWNER" | "MANAGER" | "STAFF" | "CHECKIN_STAFF"
-}
-
-const ADMIN_DELETE_PASSWORD = "admin123" // or from env
-
-export async function deletePendingBooking({
-  bookingId,
-  adminPassword,
-  staffRole,
-}: DeleteBookingArgs) {
-  return await prisma.$transaction(async (tx) => {
-    const booking = await tx.booking.findUnique({
-      where: { id: bookingId },
-      include: {
-        roomAssignment: true,
-        payment: true,
-        suite: true, // include suite to update availableRooms
-      },
-    })
-
-    if (!booking) throw new Error("Booking not found")
-
-    // Only pending & unpaid bookings allowed
-    if (booking.status !== "PENDING" || booking.payment?.status !== "PENDING") {
-      throw new Error("Only pending and unpaid bookings can be deleted")
-    }
-
-    // Admin password required if staff is not OWNER or MANAGER
-    if (staffRole !== "OWNER" && staffRole !== "MANAGER") {
-      if (!adminPassword) throw new Error("Admin password required")
-      if (adminPassword !== ADMIN_DELETE_PASSWORD)
-        throw new Error("Invalid admin password")
-    }
-
-    // 1️⃣ Cleanup room assignment (if any)
-    if (booking.roomAssignment) {
-      await tx.roomAssignment.delete({
-        where: { id: booking.roomAssignment.id },
-      })
-    }
-
-    // 2️⃣ Delete payment record (if exists)
-    if (booking.payment) {
-      await tx.payment.delete({
-        where: { id: booking.payment.id },
-      })
-    }
-
-    // 3️⃣ Delete booking itself
-    await tx.booking.delete({ where: { id: bookingId } })
-
-    // 4️⃣ Increment availableRooms in the suite
-    if (booking.suite) {
-      await tx.suite.update({
-        where: { id: booking.suite.id },
-        data: { availableRooms: { increment: 1 } },
-      })
-    }
-
-    // 5️⃣ Revalidate booking paths for frontend
-    revalidatePath("/staff/bookings")
-
-    return { success: true }
-  })
+export async function resendTicketEmail(bookingId: string) {
+  await requireStaffRole(["MANAGER", "OWNER"]) // ✅ block check-in staff
+  // Let email service decide whether it can send (paid, etc).
+  const res = await sendTicketEmailForBooking(bookingId)
+  revalidatePath(`/staff/bookings/${bookingId}`)
+  return res
 }
