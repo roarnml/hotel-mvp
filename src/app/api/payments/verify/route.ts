@@ -1,204 +1,109 @@
-
-
-/*import { NextRequest, NextResponse } from "next/server"
+// app/api/payments/verify/route.ts
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { sendTicketEmail } from "@/services/email.service"
-import QRCode from "qrcode"
+import { sendTicketEmailForBooking } from "@/services/email.service"
+import { PaymentStatus } from "@prisma/client"
 
 export const runtime = "nodejs"
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
-    const reference = searchParams.get("reference") // bookingRef
-    const trxref = searchParams.get("trxref") // paystack reference
+    const reference = searchParams.get("reference") || searchParams.get("trxref")
 
-    if (!reference && !trxref) {
-      return NextResponse.json(
-        { message: "Missing reference or trxref" },
-        { status: 400 }
-      )
+    if (!reference) {
+      return NextResponse.json({ status: "error", message: "Missing reference" }, { status: 400 })
     }
 
-    // 🔍 Fetch payment (single source of truth = reference)
-    const payment = await prisma.payment.findFirst({
-      where: trxref
-        ? { reference: trxref }
-        : { booking: { bookingRef: reference! } },
+    const payment = await prisma.payment.findUnique({
+      where: { reference },
       include: {
         booking: {
           include: {
             suite: true,
+            guest: true,
+            roomAssignment: true,
+            details: { orderBy: { createdAt: "desc" }, take: 1 },
           },
         },
       },
     })
 
+    // ✅ return 200 so polling logic stays simple
     if (!payment || !payment.booking) {
-      return NextResponse.json({ status: "not_found" }, { status: 404 })
+      return NextResponse.json({ status: "not_found" }, { status: 200 })
     }
 
     const booking = payment.booking
+    const details = booking.details?.[0] || null
 
-    // 🔒 HARD LOCK: only webhook-confirmed payments pass
-    if (booking.paymentStatus !== "PAID") {
-      return NextResponse.json({ status: "pending" })
+    const isPaid =
+      payment.status === PaymentStatus.PAID || booking.paymentStatus === PaymentStatus.PAID
+
+    if (!isPaid) {
+      return NextResponse.json({
+        status: "pending",
+        reference,
+        bookingRef: booking.bookingRef,
+        paymentStatus: payment.status,
+        bookingStatus: booking.status,
+      })
     }
 
-    // 📧 Send ticket email (best-effort, idempotent)
+    // Fallback: webhook should have already sent.
     if (!booking.emailSentAt) {
-      try {
-        const nights = Math.max(
-          Math.ceil(
-            (new Date(booking.checkOut).getTime() -
-              new Date(booking.checkIn).getTime()) /
-              (1000 * 60 * 60 * 24)
-          ),
-          1
-        )
-
-        // 🔳 QR = bookingRef (perfect check-in key)
-        const qrCodeDataUrl = await QRCode.toDataURL(
-          booking.bookingRef,
-          { margin: 1, width: 256 }
-        )
-
-        await sendTicketEmail({
-          to: booking.email,
-          subject: "Your Booking Ticket – Luxury Hotel",
-          guestName: booking.name,
-          bookingRef: booking.bookingRef,
-          checkIn: booking.checkIn.toDateString(),
-          checkOut: booking.checkOut.toDateString(),
-          nights,
-          suiteName: booking.suite.name,
-          amountPaid: `₦${((booking.amountPaid ?? 0) / 100).toLocaleString()}`,
-          qrCodeDataUrl,
-        })
-
-        await prisma.booking.update({
-          where: { id: booking.id },
-          data: { emailSentAt: new Date() },
-        })
-      } catch (emailError) {
-        console.error("Ticket email failed", {
-          bookingId: booking.id,
-          bookingRef: booking.bookingRef,
-          error: emailError,
-        })
-      }
+      sendTicketEmailForBooking(booking.id).catch((err) => {
+        console.error("❌ Ticket email fallback failed (verify):", err)
+      })
     }
 
-    // ✅ Final response
     return NextResponse.json({
       status: "ready",
+      reference,
+      bookingRef: booking.bookingRef,
       ticket: {
-        bookingRef: booking.bookingRef,
+        ticketNumber: booking.ticketNumber || null,
+
+        suiteName: booking.suite.name,
+        roomNumber: booking.roomAssignment?.roomNumber || null,
+        capacity: booking.suite.capacity ?? null,
+        features: booking.suite.features ?? [],
+
+        checkIn: booking.checkIn.toISOString(),
+        checkOut: booking.checkOut.toISOString(),
+
+        ticketPdfUrl: booking.ticketPdfUrl || null,
+        emailSentAt: booking.emailSentAt ? booking.emailSentAt.toISOString() : null,
+
         guestName: booking.name,
         email: booking.email,
-        checkIn: booking.checkIn,
-        checkOut: booking.checkOut,
-        emailSentAt: booking.emailSentAt,
-        amountPaid: booking.amountPaid,
+        phone: booking.guest?.phone || null,
+        address: booking.guest?.address || null,
+
+        chaletCount: details?.chaletCount ?? 1,
+        nights: details?.nights ?? null,
+
+        // payment info
+        paymentReference: payment.reference,
+        provider: payment.provider,
+        paymentStatus: payment.status,
+        amountExpected: payment.amount,
+        amountPaid: payment.amountPaid ?? null,
+        currency: payment.currency ?? "NGN",
+
+        // breakdown (from details snapshot)
+        pricePerNight: details?.pricePerNight ?? null,
+        baseAmount: details?.baseAmount ?? null,
+        vatAmount: details?.vatAmount ?? null,
+        transactionFee: details?.transactionFee ?? null,
+        totalAmount: details?.totalAmount ?? null,
       },
     })
-  } catch (error) {
-    console.error("Payment verification error:", error)
+  } catch (err: any) {
+    console.error("❌ Payment verification error:", err)
     return NextResponse.json(
-      { status: "error", message: "Payment verification failed" },
+      { status: "error", message: err?.message || "Payment verification failed" },
       { status: 500 }
     )
-  }
-}
-*/
-
-import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { sendTicketEmail } from "@/services/email.service"
-import QRCode from "qrcode"
-
-export const runtime = "nodejs"
-
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url)
-    const reference = searchParams.get("reference")
-    const trxref = searchParams.get("trxref")
-
-    if (!reference && !trxref) {
-      return NextResponse.json({ message: "Missing reference or trxref" }, { status: 400 })
-    }
-
-    // Fetch payment
-    const payment = await prisma.payment.findFirst({
-      where: trxref
-        ? { reference: trxref }
-        : { booking: { bookingRef: reference! } },
-      include: {
-        booking: {
-          include: { suite: true },
-        },
-      },
-    })
-
-    if (!payment || !payment.booking) {
-      return NextResponse.json({ status: "not_found" }, { status: 404 })
-    }
-
-    const booking = payment.booking
-
-    // Only allow PAID bookings
-    if (booking.paymentStatus !== "PAID") {
-      return NextResponse.json({ status: "pending" })
-    }
-
-    // Send email if not yet sent
-    if (!booking.emailSentAt) {
-      try {
-        const checkInDate = new Date(booking.checkIn)
-        const checkOutDate = new Date(booking.checkOut)
-        const nights = Math.max(
-          Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)),
-          1
-        )
-
-        const qrCodeDataUrl = await QRCode.toDataURL(booking.bookingRef, { margin: 1, width: 256 })
-
-        await sendTicketEmail({
-          to: booking.email,
-          guestName: booking.name,
-          bookingRef: booking.bookingRef,
-          checkIn: checkInDate.toDateString(),
-          checkOut: checkOutDate.toDateString(),
-          nights,
-          suiteName: booking.suite.name,
-          amountPaid: `₦${((booking.amountPaid ?? 0) / 100).toLocaleString()}`,
-          qrCodeDataUrl,
-        })
-
-        await prisma.booking.update({
-          where: { id: booking.id },
-          data: { emailSentAt: new Date() },
-        })
-      } catch (err) {
-        console.error("❌ Ticket email failed:", err)
-      }
-    }
-
-    return NextResponse.json({
-      status: "ready",
-      ticket: {
-        bookingRef: booking.bookingRef,
-        guestName: booking.name,
-        email: booking.email,
-        checkIn: booking.checkIn,
-        checkOut: booking.checkOut,
-        emailSentAt: booking.emailSentAt,
-        amountPaid: booking.amountPaid,
-      },
-    })
-  } catch (err) {
-    console.error("❌ Payment verification error:", err)
-    return NextResponse.json({ status: "error", message: "Payment verification failed" }, { status: 500 })
   }
 }
