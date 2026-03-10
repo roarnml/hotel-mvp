@@ -1,0 +1,4 @@
+buttons and icons- #75240E
+primary - #D55605
+text - white
+background- black

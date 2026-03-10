@@ -1,0 +1,24 @@
+model Booking {
+  id            String   @id @default(cuid())
+  user          User   @relation(fields: [userId], references: [id])
+  userId        Int
+  ticketNumber  String   @unique
+  suiteId       String
+  guest         Guest?   @relation(fields: [guestId], references: [id])     
+  guestId       String?
+  fullName      String
+  email         String
+  checkIn       DateTime
+  checkOut      DateTime
+  checkedIn     Boolean  @default(false)
+  checkedInAt   DateTime?
+
+  paymentId     String? 
+  paymentRef    String   // Stripe session / payment intent ID
+  paymentStatus PaymentStatus @default(PENDING)
+  createdAt     DateTime @default(now())
+
+  suite Suite @relation(fields: [suiteId], references: [id])
+  guest Guest? @relation(fields: [guestId], references: [id])
+  payment Payment?
+}

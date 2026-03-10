@@ -1,0 +1,192 @@
+Perfect! We can start building **all those files step by step**, making them fully functional and consistent with everything we’ve done so far.
+
+Here’s a plan:
+
+---
+
+### **1️⃣ Utilities & Core Libs**
+
+* `src/lib/mailer.ts` → nodemailer wrapper for sending ticket emails.
+* `src/lib/utils.ts` → helper functions (e.g., format price, generate ticket IDs).
+
+### **2️⃣ Public Components**
+
+* `src/components/layouts/Navbar.tsx` → main site navbar.
+* `src/components/layouts/Footer.tsx` → site footer.
+
+### **3️⃣ Booking Components**
+
+* `src/components/booking/DatePicker.tsx` → reusable date picker.
+* `src/components/booking/SuiteCard.tsx` → suite display card with gallery + price + Book Now button.
+
+### **4️⃣ Admin Components**
+
+* `src/components/admin/Navbar.tsx` → admin dashboard navbar.
+
+### **5️⃣ API Routes**
+
+* `src/app/api/booking/route.ts` → create bookings + initiate Stripe checkout.
+
+### **6️⃣ Pages**
+
+* `src/app/(public)/gallery/page.tsx` → gallery page.
+* `src/app/(public)/success/page.tsx` → booking success page.
+* `src/app/(admin)/bookings/page.tsx` → view all bookings.
+* `src/app/(admin)/dashboard/page.tsx` → admin dashboard overview.
+* `src/app/(admin)/suites/page.tsx` → manage suites.
+* `src/app/(admin)/user/page.tsx` → user management.
+* `src/app/(admin)/layout.tsx` → admin layout wrapper.
+
+---
+
+I suggest we **start with the core libs** (`mailer.ts` + `utils.ts`) first, because these will be used throughout the booking and admin functionality. Once those are solid, we can move to **components** and **pages**.
+
+Do you want me to **generate `src/lib/mailer.ts` first**?
+
+
+
+📁 app/api/create-booking/route.ts
+📁 app/api/webhook/route.ts
+📁 app/api/suites/route.ts
+📁 app/api/suites/[id]/route.ts
+📁 app/page.tsx → landing
+📁 app/suites/page.tsx → list
+📁 app/suites/[id]/page.tsx → suite detail
+📁 app/book/checkout/page.tsx → redirect/loader
+📁 app/ticket/[bookingRef]/page.tsx → public ticket
+
+
+Perfect — we’re moving from “MVP booking flow” to full luxury operations suite. Let’s break this into modular upgrades so each piece is clear and actionable. I’ll give a step-by-step roadmap with implementation notes.
+
+1️⃣ QR Scanner Page for Staff
+
+Goal: Staff scan ticket QR → fetch booking → mark check-in.
+
+Steps:
+
+Create /staff/scan page (client component) with webcam QR scanner.
+
+Use react-qr-reader or @zxing/browser to read QR codes.
+
+On scan → fetch booking by ticket number:
+
+const res = await fetch(`/api/bookings/${ticketNumber}/checkin`, { method: "POST" })
+
+
+Display booking details (suite, guest, dates) before check-in.
+
+Confirm → mark checkedIn = true.
+
+Bonus: Add success animation (framer-motion) for luxury effect.
+
+2️⃣ Prevent Early / Late Check-in by Date
+
+Goal: Users/staff cannot check in outside allowed window.
+
+In /api/bookings/[ref]/checkin/route.ts:
+
+const now = new Date()
+if (now < booking.checkIn || now > booking.checkOut) {
+  return NextResponse.json({ error: "Check-in not allowed at this time" }, { status: 403 })
+}
+
+
+Staff override optional (role-based check).
+
+Client: grey out check-in button if outside range.
+
+3️⃣ Admin Check-in Dashboard
+
+Goal: Staff/admin can see today’s arrivals, pending check-ins, stats.
+
+Page /dashboard/checkins (server component).
+
+Query bookings:
+
+const bookingsToday = await prisma.booking.findMany({
+  where: {
+    checkIn: { gte: startOfToday, lte: endOfToday },
+    checkedIn: false
+  }
+})
+
+
+Table with:
+
+Ticket QR
+
+Guest name/email
+
+Suite
+
+Check-in button
+
+Role-based: only STAFF / ADMIN.
+
+Extra UX: Search by ticket number or guest name.
+
+4️⃣ Printable PDF Ticket + Apple Wallet
+
+Goal: Guests can save/print their ticket; Apple Wallet optional.
+
+Generate PDF with pdf-lib or jsPDF.
+
+Include:
+
+Ticket number
+
+Guest info
+
+Suite & dates
+
+QR code (encode ticket number)
+
+Route: /ticket/[bookingRef]/pdf
+
+Apple Wallet (.pkpass):
+
+Use passkit-generator or Stripe Apple Wallet integration
+
+Include QR + basic info
+
+Sign and deliver via email or download
+
+Bonus: Pre-generate ticket on webhook → email to guest automatically.
+
+5️⃣ Dashboard Metrics (Admin)
+
+Goal: Real-time insight: occupancy, revenue, bookings.
+
+/dashboard/metrics page
+
+Queries:
+
+const totalBookings = await prisma.booking.count()
+const revenueToday = await prisma.booking.aggregate({
+  _sum: { paymentAmount: true },
+  where: { checkIn: todayRange, paymentStatus: "PAID" }
+})
+const occupancy = await prisma.suite.findMany({ include: { bookings: true }})
+
+
+Charts: Recharts / Chart.js / ApexCharts
+
+KPIs:
+
+Today’s arrivals
+
+Checked-in vs pending
+
+Revenue
+
+Most booked suites
+
+Role-based display (ADMIN / SUPER_USER only)
+
+🏎️ Next Step Recommendation
+
+Start with QR Scanner + check-in validation. That’s the backbone — all other pieces (PDF, dashboard, Apple Wallet) build on this workflow.
+
+We can next design /staff/scan and /api/bookings/[ref]/checkin with QR + date restrictions — fully working flow.
+
+Do you want me to start coding the QR scanner page + server-side check-in route next?
