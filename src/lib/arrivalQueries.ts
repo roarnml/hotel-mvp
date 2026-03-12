@@ -62,15 +62,15 @@ export async function getTodaysArrivals(): Promise<ArrivalRowData[]> {
     },
   })
 
-
   return arrivals.map((b) => ({
     id: b.id,
 
-    // Snapshot-first: survives guest deletion
+    // survives guest deletion
     guestName: b.guest?.name ?? "Unknown Guest",
 
-    // Real room if assigned, otherwise suite label
-    roomNumber: b.roomAssignment?.roomNumber ?? b.suite.name,
+    // If a room is assigned use it, otherwise show suite
+    roomNumber:
+      b.roomAssignment?.[0]?.roomNumber ?? b.suite.name,
 
     checkInTime: b.checkIn.toLocaleTimeString("en-GB", {
       hour: "2-digit",
@@ -81,17 +81,18 @@ export async function getTodaysArrivals(): Promise<ArrivalRowData[]> {
     status: b.status,
     paymentStatus: b.paymentStatus,
   }))
-
 }
 
 /**
  * Translate backend booking status → UI-friendly label
  */
-function mapBookingStatus(status: BookingStatus): ArrivalRowData["status"] {
+function mapBookingStatus(
+  status: BookingStatus
+): ArrivalRowData["status"] {
   switch (status) {
     case "CHECKED_IN":
       return "CHECKED_IN"
     default:
-      return "PENDING"
+      return "CONFIRMED"
   }
 }

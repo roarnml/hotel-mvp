@@ -3,7 +3,9 @@ import type { BookingDetailDTO } from "@/types/booking"
 
 const iso = (d?: Date | null) => (d ? d.toISOString() : null)
 
-export async function getBookingDetail(bookingId: string): Promise<BookingDetailDTO | null> {
+export async function getBookingDetail(
+  bookingId: string
+): Promise<BookingDetailDTO | null> {
   if (!bookingId) return null
 
   const b = await prisma.booking.findUnique({
@@ -20,6 +22,7 @@ export async function getBookingDetail(bookingId: string): Promise<BookingDetail
   if (!b) return null
 
   const d = b.details?.[0] ?? null
+  const room = b.roomAssignment?.[0] ?? null
 
   return {
     id: b.id,
@@ -54,7 +57,7 @@ export async function getBookingDetail(bookingId: string): Promise<BookingDetail
     },
 
     room: {
-      roomNumber: b.roomAssignment?.roomNumber ?? null,
+      roomNumber: room?.roomNumber ?? null,
     },
 
     payment: {

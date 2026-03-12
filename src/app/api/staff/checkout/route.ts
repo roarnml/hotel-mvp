@@ -27,6 +27,8 @@ export async function GET(req: NextRequest) {
         booking: {
           include: {
             suite: true,
+            guest: true, // <--- ADD THIS
+            roomAssignment: true, // optional if you want room numbers
           },
         },
       },
@@ -61,17 +63,33 @@ export async function GET(req: NextRequest) {
           { margin: 1, width: 256 }
         )
 
+        // Get all room numbers as a string
+        const roomNumbers = booking.roomAssignment
+          .map((r) => r.roomNumber)
+          .join(", ") || "TBA"
+
         await sendTicketEmail({
           to: booking.email,
           subject: "Your Booking Ticket – Luxury Hotel",
           guestName: booking.name,
+          guestEmail: booking.email,
+          guestPhone: booking.guest?.phone ?? null,
+          guestAddress: booking.guest?.address ?? null,
+
           bookingRef: booking.bookingRef,
+          ticketNumber: booking.ticketNumber ?? null,
+          paymentReference: payment.reference ?? null,
+
           checkIn: booking.checkIn.toDateString(),
           checkOut: booking.checkOut.toDateString(),
           nights,
+
           suiteName: booking.suite.name,
-          amountPaid: `₦${((booking.amountPaid ?? 0) / 100).toLocaleString()}`,
-          qrCodeDataUrl,
+          roomNumber: roomNumbers,
+          capacity: booking.suite.capacity ?? null,
+          features: booking.suite.features ?? [],
+
+          amountPaidKobo: booking.amountPaid ?? 0,
         })
 
         await prisma.booking.update({

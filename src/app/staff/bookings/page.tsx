@@ -235,7 +235,8 @@ export default function StaffBookingsPage() {
   const fetchBookings = async (query?: string) => {
     setLoading(true)
     try {
-      const data = await getBookings(query) // NormalizedBooking[]
+      const data = await getBookings(query)
+
       const normalized: Booking[] = data.map((b) => ({
         id: b.id,
         bookingRef: b.bookingRef,
@@ -246,11 +247,14 @@ export default function StaffBookingsPage() {
         status: b.status,
         paymentStatus: b.paymentStatus,
         createdAt: b.createdAt,
-        updatedAt: b.updatedAt || b.createdAt,
-        details: b.details || [],
-        payment: b.payment || null,
-        roomAssignment: b.roomAssignment || null,
+        updatedAt: b.createdAt, // fallback since normalized booking doesn't include updatedAt
+        details: [],
+        payment: null,
+        roomAssignment: b.roomNumber
+          ? { id: "virtual", roomNumber: b.roomNumber }
+          : null,
       }))
+
       setBookings(normalized)
     } finally {
       setLoading(false)

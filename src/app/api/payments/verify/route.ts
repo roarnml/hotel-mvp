@@ -63,35 +63,26 @@ export async function GET(req: NextRequest) {
       bookingRef: booking.bookingRef,
       ticket: {
         ticketNumber: booking.ticketNumber || null,
-
         suiteName: booking.suite.name,
-        roomNumber: booking.roomAssignment?.roomNumber || null,
+        roomNumbers: booking.roomAssignment.map((r) => r.roomNumber),
         capacity: booking.suite.capacity ?? null,
         features: booking.suite.features ?? [],
-
         checkIn: booking.checkIn.toISOString(),
         checkOut: booking.checkOut.toISOString(),
-
         ticketPdfUrl: booking.ticketPdfUrl || null,
         emailSentAt: booking.emailSentAt ? booking.emailSentAt.toISOString() : null,
-
         guestName: booking.name,
         email: booking.email,
         phone: booking.guest?.phone || null,
         address: booking.guest?.address || null,
-
         chaletCount: details?.chaletCount ?? 1,
         nights: details?.nights ?? null,
-
-        // payment info
         paymentReference: payment.reference,
         provider: payment.provider,
         paymentStatus: payment.status,
         amountExpected: payment.amount,
         amountPaid: payment.amountPaid ?? null,
         currency: payment.currency ?? "NGN",
-
-        // breakdown (from details snapshot)
         pricePerNight: details?.pricePerNight ?? null,
         baseAmount: details?.baseAmount ?? null,
         vatAmount: details?.vatAmount ?? null,

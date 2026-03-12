@@ -29,7 +29,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     sellableSuites,
     vipArrivalsToday,
   ] = await Promise.all([
-    // Arrivals today (confirmed or already checked in)
+    // Arrivals today
     prisma.booking.count({
       where: {
         checkIn: { gte: todayStart, lte: todayEnd },
@@ -45,11 +45,13 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       },
     }),
 
-    // Currently occupied rooms (checked-in guests)
+    // Currently occupied rooms
     prisma.booking.count({
       where: {
         status: BookingStatus.CHECKED_IN,
-        roomAssignment: { isNot: null },
+        roomAssignment: {
+          some: {}, // <-- FIXED
+        },
       },
     }),
 
@@ -60,7 +62,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       },
     }),
 
-    // Sellable suites for availability calculation
+    // Sellable suites
     prisma.suite.findMany({
       where: {
         isActive: true,
@@ -83,7 +85,6 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     }),
   ])
 
-  // Sum available rooms across sellable suites
   const availableRooms = sellableSuites.reduce(
     (sum, suite) => sum + suite.availableRooms,
     0

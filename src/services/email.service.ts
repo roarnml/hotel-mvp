@@ -66,10 +66,11 @@ type SendTicketEmailInput = {
   amountExpectedKobo?: number | null
   amountPaidKobo?: number | null
   paidAt?: string | null
+  amountPaid?: number | null
 
   // QR
-  qrPng: Buffer
-  qrValue: string
+  qrPng?: Buffer
+  qrValue?: string
 }
 
 export async function sendTicketEmail(payload: SendTicketEmailInput) {
@@ -90,6 +91,7 @@ export async function sendTicketEmail(payload: SendTicketEmailInput) {
     nights,
 
     suiteName,
+    amountPaid,
     roomNumber,
     capacity,
     features = [],
@@ -214,6 +216,7 @@ export async function sendTicketEmail(payload: SendTicketEmailInput) {
                   <tr><td style="border-bottom:1px solid #222;">VAT</td><td style="border-bottom:1px solid #222;" align="right">${formatNairaFromKobo(vatAmountKobo)}</td></tr>
                   <tr><td style="border-bottom:1px solid #222;">Transaction Fee</td><td style="border-bottom:1px solid #222;" align="right">${formatNairaFromKobo(transactionFeeKobo)}</td></tr>
                   <tr><td style="border-bottom:1px solid #222;"><strong>Total</strong></td><td style="border-bottom:1px solid #222;" align="right"><strong>${formatNairaFromKobo(totalAmountKobo)}</strong></td></tr>
+                  <tr><td style="border-bottom:1px solid #222;"><strong>Total</strong></td><td style="border-bottom:1px solid #222;" align="right"><strong>${formatNairaFromKobo(amountPaid)}</strong></td></tr>
                 </table>
 
                 <!-- QR CODE (CID inline) -->
@@ -325,7 +328,7 @@ export async function sendTicketEmailForBooking(bookingId: string) {
     nights,
 
     suiteName: booking.suite.name,
-    roomNumber: booking.roomAssignment?.roomNumber ?? null,
+    roomNumber: booking.roomAssignment?.[0]?.roomNumber ?? null,
     capacity: booking.suite.capacity ?? null,
     features: booking.suite.features ?? [],
 

@@ -1,4 +1,10 @@
-export default function DangerZone({ booking }) {
+type DangerZoneProps = {
+  booking: {
+    canDelete: boolean
+  }
+}
+
+export default function DangerZone({ booking }: DangerZoneProps) {
   if (!booking.canDelete) return null
 
   return (

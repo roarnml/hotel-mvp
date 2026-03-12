@@ -51,7 +51,7 @@ export async function getBookings(query?: string): Promise<NormalizedBooking[]> 
     guestEmail: b.guest?.email ?? b.email,
     suiteName: b.suite.name,
     suiteCategory: b.suite.category,
-    roomNumber: b.roomAssignment?.roomNumber ?? null,
+    roomNumber: b.roomAssignment?.map(r => r.roomNumber).join(", ") ?? null,
     checkIn: b.checkIn.toISOString().split("T")[0],
     checkOut: b.checkOut.toISOString().split("T")[0],
     status: b.status as Booking["status"],
@@ -97,7 +97,7 @@ export async function getBookingById(bookingId: string) {
       category: booking.suite.category,
     },
 
-    roomNumber: booking.roomAssignment?.roomNumber ?? null,
+    roomNumber: booking.roomAssignment?.map(r => r.roomNumber).join(", ") ?? null,
 
     checkIn: booking.checkIn.toISOString(),
     checkOut: booking.checkOut.toISOString(),
